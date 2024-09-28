@@ -37,6 +37,7 @@ enum KeychainServiceKey: String {
 }
 
 actor KeychainService {
+    
     var isSingedIn: Bool {
         get throws {
             try accessKey != nil && secret != nil && bucket != nil
@@ -48,7 +49,7 @@ actor KeychainService {
             if let data = try self.get(key: .accessKey) {
                 return String(data: data, encoding: .utf8)
             }
-            throw .decodeError("Data for accessKey is nil")
+            return nil
         }
     }
     
@@ -57,7 +58,7 @@ actor KeychainService {
             if let data = try self.get(key: .secret) {
                 return String(data: data, encoding: .utf8)
             }
-            throw .decodeError("Data for secret is nil")
+            return nil
         }
     }
     
@@ -66,7 +67,7 @@ actor KeychainService {
             if let data = try self.get(key: .region) {
                 return String(data: data, encoding: .utf8)
             }
-            throw .decodeError("Data for region is nil")
+            return nil
         }
     }
     
@@ -75,7 +76,7 @@ actor KeychainService {
             if let data = try self.get(key: .bucket) {
                 return String(data: data, encoding: .utf8)
             }
-            throw .decodeError("Data for bucket is nil")
+            return nil
         }
     }
     
@@ -91,18 +92,18 @@ actor KeychainService {
             kSecAttrAccessible : kSecAttrAccessibleWhenUnlockedThisDeviceOnly
         ]
         
-        let resultCode = SecItemAdd(query as CFDictionary, nil)
-        if resultCode != noErr {
-            throw .setError("Can not add item, OSStatus: \(resultCode)")
+        let status = SecItemAdd(query as CFDictionary, nil)
+        if status != noErr {
+            throw .setError("Can not add item, OSStatus: \(status)")
         }
     }
     
     func clear() throws(KeychainServiceError) {
         let query: [CFString : Any] = [kSecClass : kSecClassGenericPassword]
-        let resultCode = SecItemDelete(query as CFDictionary)
+        let status = SecItemDelete(query as CFDictionary)
         
-        if resultCode != noErr {
-            throw .clearError("Can not clear the keychain, OSStatus: \(resultCode)")
+        if status != noErr && status != errSecItemNotFound {
+            throw .clearError("Can not clear the keychain, OSStatus: \(status)")
         }
     }
     
@@ -115,14 +116,15 @@ actor KeychainService {
         ]
         
         var result: AnyObject?
-        let resultCode = withUnsafeMutablePointer(to: &result) {
+        let status = withUnsafeMutablePointer(to: &result) {
             SecItemCopyMatching(query as CFDictionary, UnsafeMutablePointer($0))
         }
-        
-        if resultCode == noErr {
-            return result as? Data
-        } else {
-            throw .getError("Can not get value for \(key.rawValue), OSStatus: \(resultCode)")
+    
+        guard status != errSecItemNotFound else { return nil }
+        guard status == noErr else {
+            throw .getError("Can not get value for \(key.rawValue), OSStatus: \(status)")
         }
+        
+        return result as? Data
     }
 }
