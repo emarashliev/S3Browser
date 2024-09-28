@@ -6,14 +6,22 @@
 //
 
 import AWSS3
+import Foundation
 
-enum S3BucketLocationServiceError: Error {
+enum S3BucketLocationServiceError: Error, LocalizedError {
     case missingContents(String)
+    
+    var errorDescription: String? {
+        get {
+            switch self {
+            case .missingContents(let msg):
+                return "\(msg) (S3BucketLocationServiceError.missingContents)"
+            }
+        }
+    }
 }
 
 struct S3BucketLocationService {
-    
-    
     private let bucket: String
     private let client: S3Client
     
