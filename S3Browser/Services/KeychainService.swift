@@ -5,6 +5,7 @@
 //  Created by Emil Marashliev on 28.09.24.
 //
 
+import ComposableArchitecture
 import Foundation
 
 enum KeychainServiceError: Error, LocalizedError {
@@ -36,14 +37,18 @@ enum KeychainServiceKey: String {
     case bucket
 }
 
-actor KeychainService {
+
+protocol Keychainable {
+    var accessKey: String? { get async throws }
+    var secret: String? { get async throws }
+    var region: String? { get async throws }
+    var bucket: String? { get async throws }
     
-    var isSingedIn: Bool {
-        get throws {
-            try accessKey != nil && secret != nil && bucket != nil
-        }
-    }
-    
+    func set(value: String, key: KeychainServiceKey) async throws(KeychainServiceError)
+    func clear() async throws(KeychainServiceError)
+}
+
+actor KeychainService: Keychainable {
     var accessKey: String? {
         get throws(KeychainServiceError) {
             if let data = try self.get(key: .accessKey) {
@@ -80,7 +85,7 @@ actor KeychainService {
         }
     }
     
-    func set(value: String, key: KeychainServiceKey) throws(KeychainServiceError) {
+    func set(value: String, key: KeychainServiceKey) async throws(KeychainServiceError) {
         guard let value = value.data(using: .utf8) else {
             throw .decodeError("Can not decode the string value to data")
         }
@@ -119,12 +124,23 @@ actor KeychainService {
         let status = withUnsafeMutablePointer(to: &result) {
             SecItemCopyMatching(query as CFDictionary, UnsafeMutablePointer($0))
         }
-    
+        
         guard status != errSecItemNotFound else { return nil }
         guard status == noErr else {
             throw .getError("Can not get value for \(key.rawValue), OSStatus: \(status)")
         }
         
         return result as? Data
+    }
+}
+
+extension DependencyValues {
+    var keychain: any Keychainable {
+        get { self[KeychainKey.self] }
+        set { self[KeychainKey.self] = newValue }
+    }
+    
+    private enum KeychainKey: DependencyKey {
+        static let liveValue: any Keychainable = KeychainService()
     }
 }
