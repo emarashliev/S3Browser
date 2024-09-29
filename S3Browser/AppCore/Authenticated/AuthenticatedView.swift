@@ -13,6 +13,11 @@ struct AuthenticatedView: View {
 
     var body: some View {
         Text("AuthenticatedView")
+        Button {
+            store.send(.successfulLogout)
+        } label: {
+            Text("Logout")
+        }
     }
 }
 

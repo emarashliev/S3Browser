@@ -26,7 +26,7 @@ struct UnauthenticatedView: View {
             .padding(.bottom, 16)
             
             Button {
-                store.send(.signInPressed)
+                store.send(.signInPressed(bucket: store.bucket, accessKey: store.accessKey, secret: store.secret))
             } label: {
                 Text("Sign In")
                     .fontWeight(.heavy)

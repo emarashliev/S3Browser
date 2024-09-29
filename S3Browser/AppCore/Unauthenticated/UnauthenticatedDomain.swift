@@ -20,9 +20,11 @@ struct UnauthenticatedDomain {
     
     enum Action: BindableAction, Sendable {
         case binding(BindingAction<State>)
-        case signInPressed
-        
+        case signInPressed(bucket: String, accessKey: String, secret: String)
+        case successfulLogin
     }
+    
+    @Dependency(\.keychain) var keychain
     
     var body: some ReducerOf<Self> {
         BindingReducer()
@@ -35,9 +37,15 @@ struct UnauthenticatedDomain {
                     state.isComplete = false
                 }
                 return .none
-            case .signInPressed :
+            case let .signInPressed(bucket, accessKey, secret):
+                return .run { _ in
+                    try await keychain.set(value: accessKey, key: .accessKey)
+                    try await keychain.set(value: secret, key: .secret)
+                    try await keychain.set(value: bucket, key: .bucket)
+                }
+            case .successfulLogin:
                 return .none
             }
-        }._printChanges()
+        }
     }
 }

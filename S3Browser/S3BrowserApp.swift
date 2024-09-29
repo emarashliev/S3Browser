@@ -10,14 +10,13 @@ import SwiftUI
 
 @main
 struct S3BrowserApp: App {
-    let store = Store(initialState: AppCoreDomain.State(authenticated: true)) {
+    let store = Store(initialState: AppCoreDomain.State()) {
         AppCoreDomain()
     }
-    
+
     var body: some Scene {
         WindowGroup {
             AppCoreView(store: store)
-//            ContentView()
         }
     }
 }

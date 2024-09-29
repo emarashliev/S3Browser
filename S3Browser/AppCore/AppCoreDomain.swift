@@ -12,11 +12,13 @@ struct AppCoreDomain {
     
     @ObservableState
     enum State: Equatable {
+        @Shared(.appStorage("logged")) static var logged = false
+        
         case loggedIn(AuthenticatedDomain.State)
         case loggedOut(UnauthenticatedDomain.State)
         
-        init(authenticated: Bool) {
-            if authenticated {
+        init() {
+            if State.logged {
                 self = AppCoreDomain.State.loggedIn(.init())
             } else {
                 self = AppCoreDomain.State.loggedOut(.init())
@@ -30,14 +32,27 @@ struct AppCoreDomain {
     }
     
     var body: some ReducerOf<Self> {
-        Reduce { _, _ in
-            return .none
+        Reduce { state, action in
+            switch action {
+            case .loggedOut(.successfulLogin):
+                State.logged = true
+                state = .loggedIn(.init())
+                return .none
+            case .loggedIn(.successfulLogout):
+                State.logged = false
+                state = .loggedOut(.init())
+                return .none
+            case .loggedIn(_):
+                return .none
+            case .loggedOut(_):
+                return .none
+            }
         }
         .ifCaseLet(\.loggedIn, action: \.loggedIn) {
             AuthenticatedDomain()
         }
         .ifCaseLet(\.loggedOut, action: \.loggedOut) {
             UnauthenticatedDomain()
-        }
+        }._printChanges()
     }
 }
