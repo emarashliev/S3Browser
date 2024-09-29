@@ -11,13 +11,33 @@ import ComposableArchitecture
 struct UnauthenticatedDomain {
     
     @ObservableState
-    struct State: Equatable {}
+    struct State: Equatable {
+        var accessKey = ""
+        var secret = ""
+        var bucket = ""
+        var isComplete = false
+    }
     
-    enum Action: Equatable {}
+    enum Action: BindableAction, Sendable {
+        case binding(BindingAction<State>)
+        case signInPressed
+        
+    }
     
     var body: some ReducerOf<Self> {
+        BindingReducer()
         Reduce { state, action in
-            return .none
-        }
+            switch action {
+            case .binding:
+                if state.bucket.count > 2 && state.accessKey.count > 2  && state.secret.count > 2 {
+                    state.isComplete = true
+                } else {
+                    state.isComplete = false
+                }
+                return .none
+            case .signInPressed :
+                return .none
+            }
+        }._printChanges()
     }
 }

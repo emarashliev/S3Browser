@@ -9,29 +9,46 @@ import ComposableArchitecture
 import SwiftUI
 
 struct UnauthenticatedView: View {
-    let store: StoreOf<UnauthenticatedDomain>
-
+    @Bindable var store: StoreOf<UnauthenticatedDomain>
+    
     var body: some View {
         VStack {
-            NavigationLink {
-            } label: {
-                Text("Login")
-                    .font(.headline)
-                    .foregroundStyle(.white)
-                    .frame(height: 55)
-                    .frame(maxWidth: .infinity)
-                    .background(Color.blue)
-                    .clipShape(Capsule())
-            }
+            Text("S3 Browser")
+                .font(.largeTitle)
+                .fontWeight(.black)
+                .padding(.bottom, 42)
             
-            Spacer()
+            VStack(spacing: 16) {
+                InputView(data: $store.bucket, title: "Bucket")
+                InputView(data: $store.accessKey, title: "Access key")
+                InputView(data: $store.secret, title: "Secret")
+            }
+            .padding(.bottom, 16)
+            
+            Button {
+                store.send(.signInPressed)
+            } label: {
+                Text("Sign In")
+                    .fontWeight(.heavy)
+                    .font(.title3)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .foregroundColor(.white)
+                    .background(
+                        LinearGradient(
+                            gradient: Gradient(colors: [.pink, .purple]),
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                        .opacity(store.isComplete ? 1.0 : 0.3)
+                    )
+                    .cornerRadius(40)
+            }
+            .disabled(!store.isComplete)
         }
         .padding()
-        .navigationTitle("Login")
     }
 }
-
-// MARK: - SwiftUI previews
 
 #Preview {
     let store = Store(initialState: UnauthenticatedDomain.State()) {

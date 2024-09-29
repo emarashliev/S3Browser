@@ -33,10 +33,10 @@ struct AppCoreDomain {
         Reduce { _, _ in
             return .none
         }
-        .ifCaseLet(/State.loggedIn, action: /Action.loggedIn) {
+        .ifCaseLet(\.loggedIn, action: \.loggedIn) {
             AuthenticatedDomain()
         }
-        .ifCaseLet(/State.loggedOut, action: /Action.loggedOut) {
+        .ifCaseLet(\.loggedOut, action: \.loggedOut) {
             UnauthenticatedDomain()
         }
     }
