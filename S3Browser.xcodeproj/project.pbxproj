@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		6C4C9EAD2CA7411C00D036B1 /* AWSS3 in Frameworks */ = {isa = PBXBuildFile; productRef = 6C4C9EAC2CA7411C00D036B1 /* AWSS3 */; };
+		6C53E2DF2CA8CF5D0068D9F2 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = 6C53E2DE2CA8CF5D0068D9F2 /* ComposableArchitecture */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -56,6 +57,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6C53E2DF2CA8CF5D0068D9F2 /* ComposableArchitecture in Frameworks */,
 				6C4C9EAD2CA7411C00D036B1 /* AWSS3 in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -118,6 +120,7 @@
 			name = S3Browser;
 			packageProductDependencies = (
 				6C4C9EAC2CA7411C00D036B1 /* AWSS3 */,
+				6C53E2DE2CA8CF5D0068D9F2 /* ComposableArchitecture */,
 			);
 			productName = S3Browser;
 			productReference = 6C4C9E7E2CA73D5D00D036B1 /* S3Browser.app */;
@@ -203,6 +206,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				6C4C9EAB2CA7411C00D036B1 /* XCRemoteSwiftPackageReference "aws-sdk-swift" */,
+				6C53E2DD2CA8CF5D0068D9F2 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 6C4C9E7F2CA73D5D00D036B1 /* Products */;
@@ -573,8 +577,16 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/awslabs/aws-sdk-swift";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.0.7;
+				kind = exactVersion;
+				version = 1.0.7;
+			};
+		};
+		6C53E2DD2CA8CF5D0068D9F2 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pointfreeco/swift-composable-architecture";
+			requirement = {
+				kind = exactVersion;
+				version = 1.15.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -584,6 +596,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 6C4C9EAB2CA7411C00D036B1 /* XCRemoteSwiftPackageReference "aws-sdk-swift" */;
 			productName = AWSS3;
+		};
+		6C53E2DE2CA8CF5D0068D9F2 /* ComposableArchitecture */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6C53E2DD2CA8CF5D0068D9F2 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */;
+			productName = ComposableArchitecture;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
