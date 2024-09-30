@@ -16,8 +16,10 @@ struct KeychainServiceKeyTests {
         
         try #require(await keychain.clear())
         
-        #expect(try await keychain.accessKey == nil)
-        #expect(try await keychain.isSingedIn == false)
+        await #expect(throws: KeychainServiceError.decodeError("Can not decode accessKey value")) {
+            try await keychain.accessKey
+        }
+
     }
     
     @Test("Test if access key is set")
@@ -29,7 +31,6 @@ struct KeychainServiceKeyTests {
         try #require(await keychain.set(value: value, key: .accessKey))
         
         await #expect(throws: Never.self) { try await keychain.accessKey }
-        #expect(try await keychain.accessKey != nil)
         #expect(try await keychain.accessKey == value)
     }
     
@@ -42,21 +43,7 @@ struct KeychainServiceKeyTests {
         try #require(await keychain.set(value: value, key: .secret))
         
         await #expect(throws: Never.self) { try await keychain.secret }
-        #expect(try await keychain.secret != nil)
         #expect(try await keychain.secret == value)
-    }
-    
-    @Test("Test if bucket is set")
-    func setBucket() async throws {
-        let value = "emil-test1"
-        let keychain = KeychainService()
-        try await keychain.clear()
-        
-        try #require(await keychain.set(value: value, key: .bucket))
-        
-        await #expect(throws: Never.self) { try await keychain.bucket }
-        #expect(try await keychain.bucket != nil)
-        #expect(try await keychain.bucket == value)
     }
     
     @Test("Test if region is set")
@@ -68,7 +55,6 @@ struct KeychainServiceKeyTests {
         try #require(await keychain.set(value: value, key: .region))
         
         await #expect(throws: Never.self) { try await keychain.region }
-        #expect(try await keychain.region != nil)
         #expect(try await keychain.region == value)
     }
 }

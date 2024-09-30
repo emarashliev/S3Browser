@@ -11,7 +11,7 @@ import AWSSDKIdentity
 struct S3ClientConstructor {
     private let accessKey: String
     private let secret: String
-    var region: String
+    private let region: String
     
     init(accessKey: String, secret: String, region: String = "us-east-1") {
         self.accessKey = accessKey

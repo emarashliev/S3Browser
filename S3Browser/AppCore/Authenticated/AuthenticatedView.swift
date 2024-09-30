@@ -12,12 +12,12 @@ struct AuthenticatedView: View {
     let store: StoreOf<AuthenticatedDomain>
 
     var body: some View {
-        Text("AuthenticatedView")
+        Text(store.bucket)
         Button {
             store.send(.successfulLogout)
         } label: {
             Text("Logout")
-        }
+        }.onAppear { store.send(.onAppear) }
     }
 }
 

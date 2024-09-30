@@ -13,33 +13,36 @@ struct AppCoreDomain {
     @ObservableState
     enum State: Equatable {
         @Shared(.appStorage("logged")) static var logged = false
-        
+        @Shared(.appStorage("bucket")) static var bucket = ""
+
         case loggedIn(AuthenticatedDomain.State)
         case loggedOut(UnauthenticatedDomain.State)
         
         init() {
             if State.logged {
-                self = AppCoreDomain.State.loggedIn(.init())
+                self = AppCoreDomain.State.loggedIn(.init(bucket: State.bucket))
             } else {
                 self = AppCoreDomain.State.loggedOut(.init())
             }
         }
     }
-    
+
     enum Action {
         case loggedIn(AuthenticatedDomain.Action)
         case loggedOut(UnauthenticatedDomain.Action)
     }
-    
+
     var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
-            case .loggedOut(.successfulLogin):
+            case let .loggedOut(.successfulLogin(bucket)):
                 State.logged = true
-                state = .loggedIn(.init())
+                State.bucket = bucket
+                state = .loggedIn(.init(bucket: bucket))
                 return .none
             case .loggedIn(.successfulLogout):
                 State.logged = false
+                State.bucket = ""
                 state = .loggedOut(.init())
                 return .none
             case .loggedIn(_):

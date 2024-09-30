@@ -20,12 +20,14 @@ struct UnauthenticatedDomain {
     
     enum Action: BindableAction, Sendable {
         case binding(BindingAction<State>)
-        case signInPressed(bucket: String, accessKey: String, secret: String)
-        case successfulLogin
+        case signInPressed
+        case getLogin(region: String)
+        case successfulLogin(bucket: String)
     }
     
     @Dependency(\.keychain) var keychain
-    
+    @Dependency(\.s3Bucket) var s3Bucket
+
     var body: some ReducerOf<Self> {
         BindingReducer()
         Reduce { state, action in
@@ -37,11 +39,39 @@ struct UnauthenticatedDomain {
                     state.isComplete = false
                 }
                 return .none
-            case let .signInPressed(bucket, accessKey, secret):
-                return .run { _ in
-                    try await keychain.set(value: accessKey, key: .accessKey)
-                    try await keychain.set(value: secret, key: .secret)
-                    try await keychain.set(value: bucket, key: .bucket)
+            case .signInPressed:
+                let bucket = state.bucket
+                let accessKey = state.accessKey
+                let secret = state.secret
+
+                return .run { send in
+                    do {
+                        try await keychain.set(value: accessKey, key: .accessKey)
+                        try await keychain.set(value: secret, key: .secret)
+                        let region = try await s3Bucket.getBucketRegion(
+                            bucket: bucket,
+                            accessKey: accessKey,
+                            secret: secret
+                        )
+                        try await keychain.set(value: region, key: .region)
+                        await send(.getLogin(region: region))
+                    } catch {
+                        try await keychain.clear()
+                        throw error
+                    }
+                }
+            case let .getLogin(region):
+                let bucket = state.bucket
+                let accessKey = state.accessKey
+                let secret = state.secret
+
+                return .run { send in
+                    try await s3Bucket.login(
+                        accessKey: accessKey,
+                        secret: secret,
+                        region: region
+                    )
+                    await send(.successfulLogin(bucket: bucket))
                 }
             case .successfulLogin:
                 return .none

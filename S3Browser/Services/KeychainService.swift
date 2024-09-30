@@ -8,7 +8,7 @@
 import ComposableArchitecture
 import Foundation
 
-enum KeychainServiceError: Error, LocalizedError {
+enum KeychainServiceError: Error, LocalizedError, Equatable {
     case setError(String)
     case clearError(String)
     case getError(String)
@@ -34,56 +34,55 @@ enum KeychainServiceKey: String {
     case accessKey
     case secret
     case region
-    case bucket
 }
 
 
 protocol Keychainable {
-    var accessKey: String? { get async throws }
-    var secret: String? { get async throws }
-    var region: String? { get async throws }
-    var bucket: String? { get async throws }
-    
+    var accessKey: String { get async throws }
+    var secret: String { get async throws }
+    var region: String { get async throws }
+
     func set(value: String, key: KeychainServiceKey) async throws(KeychainServiceError)
     func clear() async throws(KeychainServiceError)
 }
 
 actor KeychainService: Keychainable {
-    var accessKey: String? {
+    var accessKey: String {
         get throws(KeychainServiceError) {
-            if let data = try self.get(key: .accessKey) {
-                return String(data: data, encoding: .utf8)
+            guard
+                let data = try self.get(key: .accessKey),
+                let accessKey = String(data: data, encoding: .utf8)
+            else {
+                throw .decodeError("Can not decode accessKey value")
             }
-            return nil
+            return accessKey
         }
     }
     
-    var secret: String? {
+    var secret: String {
         get throws(KeychainServiceError) {
-            if let data = try self.get(key: .secret) {
-                return String(data: data, encoding: .utf8)
+            guard
+                let data = try self.get(key: .secret),
+                let secret = String(data: data, encoding: .utf8)
+            else {
+                throw .decodeError("Can not decode secret value")
             }
-            return nil
+            return secret
         }
     }
     
-    var region: String? {
+    var region: String {
         get throws(KeychainServiceError) {
-            if let data = try self.get(key: .region) {
-                return String(data: data, encoding: .utf8)
+            guard
+                let data = try self.get(key: .region),
+                let region = String(data: data, encoding: .utf8)
+            else {
+                throw .decodeError("Can not decode region value")
             }
-            return nil
+            return region
         }
     }
     
-    var bucket: String? {
-        get throws(KeychainServiceError) {
-            if let data = try self.get(key: .bucket) {
-                return String(data: data, encoding: .utf8)
-            }
-            return nil
-        }
-    }
     
     func set(value: String, key: KeychainServiceKey) async throws(KeychainServiceError) {
         guard let value = value.data(using: .utf8) else {
