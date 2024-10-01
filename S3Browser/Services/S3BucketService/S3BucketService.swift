@@ -37,7 +37,7 @@ final class S3BucketService: S3Bucket {
     func getBucketRegion(bucket: String, accessKey: String, secret: String) async throws -> String {
         let constructor = S3ClientConstructor(accessKey: accessKey, secret: secret)
         let client = try await constructor.getClient()
-        let bucketLocator = S3BucketLocationService(bucket: bucket, client: client)
+        let bucketLocator = S3BucketLocator(bucket: bucket, client: client)
         return try await bucketLocator.getLocation()
     }
     

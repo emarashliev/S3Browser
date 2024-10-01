@@ -1,5 +1,5 @@
 //
-//  S3SBucketLocationService.swift
+//  S3SBucketLocator.swift
 //  S3Browser
 //
 //  Created by Emil Marashliev on 28.09.24.
@@ -8,7 +8,7 @@
 import AWSS3
 import Foundation
 
-enum S3BucketLocationServiceError: Error, LocalizedError {
+enum S3BucketLocatorError: Error, LocalizedError {
     case missingContents(String)
     
     var errorDescription: String? {
@@ -21,7 +21,7 @@ enum S3BucketLocationServiceError: Error, LocalizedError {
     }
 }
 
-struct S3BucketLocationService {
+struct S3BucketLocator {
     private let bucket: String
     private let client: S3Client
     
@@ -34,7 +34,7 @@ struct S3BucketLocationService {
         let input = GetBucketLocationInput(bucket: bucket)
         let bucketLocation = try await client.getBucketLocation(input: input)
         guard let location = bucketLocation.locationConstraint?.rawValue else {
-            throw S3BucketLocationServiceError.missingContents("Can not find location for bucket with name \(bucket)")
+            throw S3BucketLocatorError.missingContents("Can not find location for bucket with name \(bucket)")
         }
         
         return location
