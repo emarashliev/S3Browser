@@ -19,9 +19,10 @@ struct UnauthenticatedView: View {
                 .padding(.bottom, 42)
             
             VStack(spacing: 16) {
-                InputView(data: $store.bucket, title: "Bucket")
-                InputView(data: $store.accessKey, title: "Access key")
-                InputView(data: $store.secret, title: "Secret")
+                InputView(data: $store.bucket, title: "Bucket", type: .nonSecure)
+                InputView(data: $store.accessKey, title: "Access key", type: .nonSecure)
+                InputView(data: $store.secret, title: "Secret", type: .secure)
+                InputView(data: $store.region, title: "Region", type: .nonSecure)
             }
             .padding(.bottom, 16)
             

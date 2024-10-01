@@ -8,19 +8,35 @@
 import SwiftUI
 
 struct InputView: View {
+    enum InputType {
+        case secure
+        case nonSecure
+    }
+
     @Binding var data: String
     var title: String
-    
+    let type: InputType
+
     var body: some View {
         ZStack {
-            TextField("", text: $data)
-                .padding(.horizontal, 10)
-                .frame(height: 42)
-                .overlay(
-                    RoundedRectangle(cornerSize: CGSize(width: 4, height: 4))
-                        .stroke(Color.gray, lineWidth: 1)
-                )
-            
+            if type == .nonSecure {
+                TextField("", text: $data)
+                    .padding(.horizontal, 10)
+                    .frame(height: 42)
+                    .overlay(
+                        RoundedRectangle(cornerSize: CGSize(width: 4, height: 4))
+                            .stroke(Color.gray, lineWidth: 1)
+                    )
+            } else {
+                SecureField("", text: $data)
+                    .padding(.horizontal, 10)
+                    .frame(height: 42)
+                    .overlay(
+                        RoundedRectangle(cornerSize: CGSize(width: 4, height: 4))
+                            .stroke(Color.gray, lineWidth: 1)
+                    )
+            }
+
             HStack {
                 Text(title)
                     .font(.headline)
@@ -40,5 +56,5 @@ struct InputView: View {
 
 #Preview {
     @Previewable @State var data = ""
-    InputView(data: $data, title: "Title")
+    InputView(data: $data, title: "Title", type: .nonSecure)
 }
