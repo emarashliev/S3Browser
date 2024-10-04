@@ -10,7 +10,7 @@ import SwiftUI
 
 struct AppCoreView: View {
     let store: StoreOf<AppCoreDomain>
-    
+
     var body: some View {
         switch store.state {
         case .loggedIn:
@@ -19,9 +19,7 @@ struct AppCoreView: View {
             }
         case .loggedOut:
             if let store = store.scope(state: \.loggedOut, action: \.loggedOut) {
-                NavigationStack {
-                    UnauthenticatedView(store: store)
-                }
+                UnauthenticatedView(store: store)
             }
         }
     }

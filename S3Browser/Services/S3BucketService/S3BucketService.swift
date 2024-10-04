@@ -26,7 +26,7 @@ protocol S3Bucket {
     var loggedin: Bool { get }
     func getBucketRegion(bucket: String, accessKey: String, secret: String) async throws -> String
     func login(accessKey: String, secret: String, region: String) async throws
-    func getObjectKeys(bucket: String) async throws -> [String]
+    func getObjects(bucket: String, prefix: String ) async throws -> [S3BucketObject]
 }
 
 final class S3BucketService: S3Bucket {
@@ -47,13 +47,24 @@ final class S3BucketService: S3Bucket {
         client = try await constructor.getClient()
     }
 
-    func getObjectKeys(bucket: String) async throws -> [String] {
+    func getObjects(bucket: String, prefix: String = "") async throws -> [S3BucketObject] {
         guard let client = self.client else {
             throw S3BucketServiceError.missingClient("Need to login before calling getObjectKeys(_:)")
         }
-        let output = try await client.listObjectsV2(input: ListObjectsV2Input(bucket: bucket))
-        let keys = output.contents?.compactMap { $0.key } ?? []
-        return keys
+        let input = ListObjectsV2Input(bucket: bucket, delimiter: "/", prefix: prefix)
+        let output = try await client.listObjectsV2(input: input)
+        var contents = output.contents?.compactMap {
+            guard let key = $0.key else { return nil }
+             return S3BucketObject(name: key, prefix: prefix, isFile: true)
+        } ?? [S3BucketObject]()
+
+        let commonPrefixes = output.commonPrefixes?.compactMap{
+            guard let key = $0.prefix else { return nil }
+            return S3BucketObject(name: key, prefix: prefix, isFile: false)
+        } ?? [S3BucketObject]()
+
+        contents.append(contentsOf: commonPrefixes)
+        return contents
     }
 }
 

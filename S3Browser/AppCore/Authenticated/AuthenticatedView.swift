@@ -10,18 +10,14 @@ import SwiftUI
 
 struct AuthenticatedView: View {
     let store: StoreOf<AuthenticatedDomain>
-
+    
     var body: some View {
-        Text(store.bucket)
-        Button {
-            store.send(.successfulLogout)
-        } label: {
-            Text("Logout")
-        }.onAppear { store.send(.onAppear) }
+        NavigationStack {
+            let store = Store(initialState: FIleBrowserDomain.State(name: store.bucket, isFile: false)) {
+                FIleBrowserDomain()
+            }
+            FIleBrowserView(store: store)
+        }
+        .onAppear { store.send(.onAppear) }
     }
 }
-
-//#Preview {
-//    UnauthenticatedView()
-//}
-

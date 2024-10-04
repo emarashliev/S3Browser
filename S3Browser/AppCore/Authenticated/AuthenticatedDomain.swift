@@ -9,15 +9,19 @@ import ComposableArchitecture
 
 @Reducer
 struct AuthenticatedDomain {
-    
+
     @ObservableState
     struct State: Equatable {
         let bucket: String
+        var keys: [String] = []
+        @Shared(.inMemory("logout")) var logout = false
+
     }
-    
+
     enum Action: Equatable {
-        case successfulLogout
         case onAppear
+        case logout(Bool)
+        case successfulLogout
     }
 
     @Dependency(\.keychain) var keychain
@@ -26,23 +30,26 @@ struct AuthenticatedDomain {
     var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
+            case let .logout(logout):
+                if logout {
+                    return .send(.successfulLogout)
+                }
+                return .none
             case .successfulLogout:
                 return .run { _ in
                     try await keychain.clear()
                 }
             case .onAppear:
-                let bucket = state.bucket
-                return .run { _ in
-                    if !s3Bucket.loggedin {
-                        try await s3Bucket.login(
-                            accessKey: keychain.accessKey,
-                            secret: keychain.secret,
-                            region: keychain.region
-                        )
-                    }
-                    let r = try await s3Bucket.getObjectKeys(bucket: bucket)
-                    print(r)
-                }
+                return .publisher({ state.$logout.publisher.map(Action.logout) })
+//                    .merge(with: .run { send in
+//                        if !s3Bucket.loggedin {
+//                            try await s3Bucket.login(
+//                                accessKey: keychain.accessKey,
+//                                secret: keychain.secret,
+//                                region: keychain.region
+//                            )
+//                        }
+//                    })
             }
         }
     }

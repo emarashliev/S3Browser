@@ -79,6 +79,15 @@ struct UnauthenticatedDomain {
                 }
             case let .set(region):
                 state.region = region
+                if
+                    state.bucket.count > 4 &&
+                    state.accessKey.count > 16  &&
+                    state.secret.count > 36 &&
+                    state.region.count > 4
+
+                {
+                    state.isComplete = true
+                }
                 return .none
             case .successfulLogin:
                 let accessKey = state.accessKey
