@@ -36,6 +36,8 @@ protocol S3Bucket {
     func getBucketRegion(bucket: String, accessKey: String, secret: String) async throws -> String
     func login(accessKey: String, secret: String, region: String) async throws
     func getObjects(bucket: String, prefix: String ) async throws -> [S3BucketObject]
+    func downloadFile(bucket: String, key: String) async throws
+    func localFileExists(for key: String) -> Bool
 }
 
 final class S3BucketService: S3Bucket {
@@ -95,8 +97,17 @@ final class S3BucketService: S3Bucket {
             throw S3BucketServiceError.readGetObjectBody("GetObjectInput unable to read data.")
         }
 
-        let fileUrl = getDocumentsDirectory().appendingPathComponent(key)
+        let fileUrl = getDocumentsDirectory().appendingPathComponent(encodeLocalName(for: key))
         try data.write(to: fileUrl)
+    }
+
+    func localFileExists(for key: String) -> Bool {
+        let fileUrl = getDocumentsDirectory().appendingPathComponent(encodeLocalName(for: key))
+        return FileManager.default.fileExists(atPath: fileUrl.path())
+    }
+
+    private func encodeLocalName(for key: String) -> String {
+        return key.replacingOccurrences(of: "/", with: "_")
     }
 
     private func getDocumentsDirectory() -> URL {

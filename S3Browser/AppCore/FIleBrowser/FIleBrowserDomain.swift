@@ -17,6 +17,7 @@ struct FIleBrowserDomain {
         var name: String
         let isFile: Bool
         var path: String
+        var downloadComponent: DownloadComponentDomain.State
         var rows: IdentifiedArrayOf<State> = []
         @Shared(.appStorage("logged")) var loggedin = false
         @Shared(.appStorage("bucket-name")) var bucketName = ""
@@ -26,6 +27,7 @@ struct FIleBrowserDomain {
             name: String,
             isFile: Bool,
             path: String = "" ,
+            existsLocally: Bool = false,
             rows: IdentifiedArrayOf<State> = []
         ) {
             @Dependency(\.uuid) var uuid
@@ -34,22 +36,32 @@ struct FIleBrowserDomain {
             self.rows = rows
             self.isFile = isFile
             self.path = path
+            self.downloadComponent = .init(
+                id: self.id,
+                key: path,
+                mode: existsLocally ? .downloaded : .notDownloaded
+            )
         }
     }
 
-    enum Action: Equatable {
+    enum Action {
         case onAppear
         case successfulLoginInS3
         case set(IdentifiedArrayOf<State>)
         indirect case rows(IdentifiedActionOf<FIleBrowserDomain>)
         case logoutPressed
+        case downloadComponent(DownloadComponentDomain.Action)
+
     }
 
     @Dependency(\.s3Bucket) var s3Bucket
     @Dependency(\.keychain) var keychain
 
     var body: some ReducerOf<Self> {
-        
+        Scope(state: \.downloadComponent, action: \.downloadComponent) {
+            DownloadComponentDomain()
+        }
+
         Reduce { state, action in
             switch action {
             case .onAppear:
@@ -69,6 +81,9 @@ struct FIleBrowserDomain {
                 state.loggedin = false
                 return .none
 
+            case .downloadComponent:
+                return .none
+
             }
         }
         .forEach(\.rows, action: \.rows) {
@@ -84,8 +99,14 @@ struct FIleBrowserDomain {
             
             let objects = try await s3Bucket.getObjects(bucket: bucket, prefix: path)
             let rows = objects.compactMap{ (object) -> State? in
-                guard let name = object.key.split(separator: "/").last else {return nil }
-                return State(name: String(name), isFile: object.isFile, path: object.key)
+                guard let name = object.key.split(separator: "/").last else { return nil }
+                let existsLocally = s3Bucket.localFileExists(for: object.key)
+                return State(
+                    name: String(name),
+                    isFile: object.isFile,
+                    path: object.key,
+                    existsLocally: existsLocally
+                )
             }
 
             await send(.set(IdentifiedArrayOf(uniqueElements: rows)))

@@ -19,6 +19,10 @@ struct FIleBrowserView: View {
                         .foregroundStyle(LinearGradient.appColor)
                     Text(rowStore.name)
                         .fontWeight(.medium)
+                    Spacer()
+                    DownloadComponentView(
+                        store: rowStore.scope(state: \.downloadComponent, action: \.downloadComponent)
+                    )
                 }
             } else {
                 NavigationLink {

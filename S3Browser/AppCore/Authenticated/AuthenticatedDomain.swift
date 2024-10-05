@@ -11,13 +11,12 @@ import ComposableArchitecture
 struct AuthenticatedDomain {
 
     @ObservableState
-    struct State: Equatable {
+    struct State {
         @Shared(.appStorage("logged")) var loggedin = false
         @Shared(.appStorage("bucket-name")) var bucketName = ""
-
     }
 
-    enum Action: Equatable {
+    enum Action {
         case onAppear
         case loggedin(Bool)
         case successfulLogout

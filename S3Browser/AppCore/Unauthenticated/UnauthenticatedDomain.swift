@@ -11,7 +11,7 @@ import ComposableArchitecture
 struct UnauthenticatedDomain {
     
     @ObservableState
-    struct State: Equatable {
+    struct State {
         var accessKey = ""
         var secret = ""
         var bucket = ""
@@ -21,7 +21,7 @@ struct UnauthenticatedDomain {
         @Shared(.appStorage("bucket-name")) var bucketName = ""
     }
     
-    enum Action: BindableAction, Sendable {
+    enum Action: BindableAction {
         case binding(BindingAction<State>)
         case signInPressed
         case set(region: String)
