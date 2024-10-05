@@ -36,12 +36,9 @@ struct UnauthenticatedView: View {
                     .padding()
                     .foregroundColor(.white)
                     .background(
-                        LinearGradient(
-                            gradient: Gradient(colors: [.pink, .purple]),
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                        .opacity(store.isComplete ? 1.0 : 0.3)
+                        LinearGradient
+                            .appColor
+                            .opacity(store.isComplete ? 1.0 : 0.3)
                     )
                     .cornerRadius(40)
             }

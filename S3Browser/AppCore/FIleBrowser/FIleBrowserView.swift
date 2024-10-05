@@ -13,19 +13,21 @@ struct FIleBrowserView: View {
 
     var body: some View {
         List(store.scope(state: \.rows, action: \.rows)) { rowStore in
-            @Bindable var rowStore = rowStore
             if rowStore.isFile {
                 HStack {
+                    Image(systemName: "document.fill")
+                        .foregroundStyle(LinearGradient.appColor)
                     Text(rowStore.name)
+                        .fontWeight(.medium)
                 }
             } else {
                 NavigationLink {
                     FIleBrowserView(store: rowStore)
                 } label: {
-                    HStack {
-                        Text(rowStore.name)
-
-                    }
+                    Image(systemName: "folder.fill")
+                        .foregroundStyle(LinearGradient.appColor)
+                    Text(rowStore.name)
+                        .fontWeight(.medium)
                 }
             }
         }
