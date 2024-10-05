@@ -84,8 +84,8 @@ struct FIleBrowserDomain {
             
             let objects = try await s3Bucket.getObjects(bucket: bucket, prefix: path)
             let rows = objects.compactMap{ (object) -> State? in
-                guard let objectName = object.name.split(separator: "/").last else {return nil }
-                return State(name: String(objectName), isFile: object.isFile, path: object.name)
+                guard let name = object.key.split(separator: "/").last else {return nil }
+                return State(name: String(name), isFile: object.isFile, path: object.key)
             }
 
             await send(.set(IdentifiedArrayOf(uniqueElements: rows)))

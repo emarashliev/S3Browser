@@ -11,12 +11,21 @@ import Foundation
 
 enum S3BucketServiceError: Error, LocalizedError {
     case missingClient(String)
+    case getObjectBody(String)
+    case readGetObjectBody(String)
 
     var errorDescription: String? {
         get {
             switch self {
-            case .missingClient(let msg):
+            case let .missingClient(msg):
                 return "\(msg) (S3BucketServiceError.missingClient)"
+
+            case let .getObjectBody(msg):
+                return "\(msg) (S3BucketServiceError.getObjectBody)"
+                
+            case let .readGetObjectBody(msg):
+                return "\(msg) (S3BucketServiceError.readGetObjectBody)"
+
             }
         }
     }
@@ -57,17 +66,43 @@ final class S3BucketService: S3Bucket {
         
         var contents = output.contents?.compactMap {
             guard let key = $0.key else { return nil }
-             return S3BucketObject(name: key, prefix: prefix, isFile: true)
+             return S3BucketObject(key: key, prefix: prefix, isFile: true)
         } ?? [S3BucketObject]()
 
         let commonPrefixes = output.commonPrefixes?.compactMap{
             guard let key = $0.prefix else { return nil }
-            return S3BucketObject(name: key, prefix: prefix, isFile: false)
+            return S3BucketObject(key: key, prefix: prefix, isFile: false)
         } ?? [S3BucketObject]()
 
         contents.append(contentsOf: commonPrefixes)
-        contents.removeAll { $0.name == prefix }
+        contents.removeAll { $0.key == prefix }
         return contents
+    }
+
+    func downloadFile(bucket: String, key: String) async throws {
+        guard let client = self.client else {
+            throw S3BucketServiceError.missingClient("Need to login before calling getObjectKeys(_:)")
+        }
+
+        let input = GetObjectInput(bucket: bucket, key: key)
+        let output = try await client.getObject(input: input)
+
+        guard let body = output.body else {
+            throw S3BucketServiceError.getObjectBody("GetObjectInput missing body.")
+        }
+
+        guard let data = try await body.readData() else {
+            throw S3BucketServiceError.readGetObjectBody("GetObjectInput unable to read data.")
+        }
+
+        let fileUrl = getDocumentsDirectory().appendingPathComponent(key)
+        try data.write(to: fileUrl)
+    }
+
+    private func getDocumentsDirectory() -> URL {
+        let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+        let documentsDirectory = paths[0]
+        return documentsDirectory
     }
 }
 

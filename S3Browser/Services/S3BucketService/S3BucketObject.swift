@@ -6,7 +6,7 @@
 //
 
 struct S3BucketObject {
-    let name: String
+    let key: String
     let prefix: String
     let isFile: Bool
 }

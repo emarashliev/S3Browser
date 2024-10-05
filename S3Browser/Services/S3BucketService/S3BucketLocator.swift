@@ -14,7 +14,7 @@ enum S3BucketLocatorError: Error, LocalizedError {
     var errorDescription: String? {
         get {
             switch self {
-            case .missingContents(let msg):
+            case let .missingContents(msg):
                 return "\(msg) (S3BucketLocationServiceError.missingContents)"
             }
         }

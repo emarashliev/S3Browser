@@ -17,13 +17,16 @@ enum KeychainServiceError: Error, LocalizedError, Equatable {
     var errorDescription: String? {
         get {
             switch self {
-            case .setError(let msg):
+            case let .setError( msg):
                 return "\(msg) (KeychainServiceError.setError)"
-            case .clearError(let msg):
+                
+            case let .clearError(msg):
                 return "\(msg) (KeychainServiceError.clearError)"
-            case .getError(let msg):
+
+            case let .getError(msg):
                 return "\(msg) (KeychainServiceError.getError)"
-            case .decodeError(let msg):
+
+            case let .decodeError(msg):
                 return "\(msg) (KeychainServiceError.decodeError)"
             }
         }
