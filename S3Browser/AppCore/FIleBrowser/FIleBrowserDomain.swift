@@ -18,8 +18,8 @@ struct FIleBrowserDomain {
         let isFile: Bool
         var path: String = ""
         var rows: IdentifiedArrayOf<State> = []
-        @Shared(.inMemory("logout")) var logout = false
-        @Shared(.appStorage("bucket")) var bucket = ""
+        @Shared(.appStorage("logged")) var loggedin = false
+        @Shared(.appStorage("bucket-name")) var bucketName = ""
 
         init(
             id: UUID? = nil,
@@ -47,10 +47,11 @@ struct FIleBrowserDomain {
     @Dependency(\.keychain) var keychain
 
     var body: some ReducerOf<Self> {
+        
         Reduce { state, action in
             switch action {
             case .onAppear:
-                let bucket = state.bucket
+                let bucket = state.bucketName
                 return .run { _ in
                     if !s3Bucket.loggedin {
                         try await s3Bucket.login(
@@ -62,11 +63,14 @@ struct FIleBrowserDomain {
                     let objects = try await s3Bucket.getObjects(bucket: bucket, prefix: "")
                     print(objects)
                 }
+
             case .rows:
                 return .none
+
             case .logoutPressed:
-                state.logout = true
+                state.loggedin = false
                 return .none
+
             }
         }
         .forEach(\.rows, action: \.rows) {

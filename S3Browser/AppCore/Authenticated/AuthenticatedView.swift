@@ -13,7 +13,7 @@ struct AuthenticatedView: View {
     
     var body: some View {
         NavigationStack {
-            let store = Store(initialState: FIleBrowserDomain.State(name: store.bucket, isFile: false)) {
+            let store = Store(initialState: FIleBrowserDomain.State(name: store.bucketName, isFile: false)) {
                 FIleBrowserDomain()
             }
             FIleBrowserView(store: store)

@@ -12,44 +12,43 @@ struct AuthenticatedDomain {
 
     @ObservableState
     struct State: Equatable {
-        let bucket: String
-        var keys: [String] = []
-        @Shared(.inMemory("logout")) var logout = false
+        @Shared(.appStorage("logged")) var loggedin = false
+        @Shared(.appStorage("bucket-name")) var bucketName = ""
 
     }
 
     enum Action: Equatable {
         case onAppear
-        case logout(Bool)
+        case loggedin(Bool)
         case successfulLogout
+        case successfulKeychainClear
     }
 
     @Dependency(\.keychain) var keychain
     @Dependency(\.s3Bucket) var s3Bucket
 
     var body: some ReducerOf<Self> {
+
         Reduce { state, action in
             switch action {
-            case let .logout(logout):
-                if logout {
+            case let .loggedin(loggedin):
+                if !loggedin {
                     return .send(.successfulLogout)
                 }
                 return .none
+
             case .successfulLogout:
-                return .run { _ in
+                return .run { send in
                     try await keychain.clear()
+                    await send(.successfulKeychainClear)
                 }
+                
+            case .successfulKeychainClear:
+                state.bucketName = ""
+                return .none
+
             case .onAppear:
-                return .publisher({ state.$logout.publisher.map(Action.logout) })
-//                    .merge(with: .run { send in
-//                        if !s3Bucket.loggedin {
-//                            try await s3Bucket.login(
-//                                accessKey: keychain.accessKey,
-//                                secret: keychain.secret,
-//                                region: keychain.region
-//                            )
-//                        }
-//                    })
+                return .publisher { state.$loggedin.publisher.map(Action.loggedin) }
             }
         }
     }

@@ -51,8 +51,10 @@ final class S3BucketService: S3Bucket {
         guard let client = self.client else {
             throw S3BucketServiceError.missingClient("Need to login before calling getObjectKeys(_:)")
         }
+
         let input = ListObjectsV2Input(bucket: bucket, delimiter: "/", prefix: prefix)
         let output = try await client.listObjectsV2(input: input)
+        
         var contents = output.contents?.compactMap {
             guard let key = $0.key else { return nil }
              return S3BucketObject(name: key, prefix: prefix, isFile: true)
