@@ -88,7 +88,6 @@ struct UnauthenticatedDomain {
     }
 
     private func signInPressed(state: inout State) -> Effect<Self.Action> {
-        let bucket = state.bucket
         let accessKey = state.accessKey
         let secret = state.secret
         let region = state.region

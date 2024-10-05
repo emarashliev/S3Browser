@@ -66,6 +66,7 @@ final class S3BucketService: S3Bucket {
         } ?? [S3BucketObject]()
 
         contents.append(contentsOf: commonPrefixes)
+        contents.removeAll { $0.name == prefix }
         return contents
     }
 }

@@ -14,18 +14,18 @@ struct FIleBrowserDomain {
     @ObservableState
     struct State: Equatable, Identifiable {
         let id: UUID
-        var name: String = ""
+        var name: String
         let isFile: Bool
-        var path: String = ""
+        var path: String
         var rows: IdentifiedArrayOf<State> = []
         @Shared(.appStorage("logged")) var loggedin = false
         @Shared(.appStorage("bucket-name")) var bucketName = ""
 
         init(
             id: UUID? = nil,
-            name: String = "",
+            name: String,
             isFile: Bool,
-            path: String = "",
+            path: String = "" ,
             rows: IdentifiedArrayOf<State> = []
         ) {
             @Dependency(\.uuid) var uuid
@@ -38,9 +38,11 @@ struct FIleBrowserDomain {
     }
 
     enum Action: Equatable {
-        case logoutPressed
         case onAppear
+        case successfulLoginInS3
+        case set(IdentifiedArrayOf<State>)
         indirect case rows(IdentifiedActionOf<FIleBrowserDomain>)
+        case logoutPressed
     }
 
     @Dependency(\.s3Bucket) var s3Bucket
@@ -51,18 +53,14 @@ struct FIleBrowserDomain {
         Reduce { state, action in
             switch action {
             case .onAppear:
-                let bucket = state.bucketName
-                return .run { _ in
-                    if !s3Bucket.loggedin {
-                        try await s3Bucket.login(
-                            accessKey: keychain.accessKey,
-                            secret: keychain.secret,
-                            region: keychain.region
-                        )
-                    }
-                    let objects = try await s3Bucket.getObjects(bucket: bucket, prefix: "")
-                    print(objects)
-                }
+                return loginIfNeeded(state: &state)
+
+            case .successfulLoginInS3:
+                return fetchBucketObjects(state: &state)
+
+            case let .set(rows):
+                state.rows = rows
+                return .none
 
             case .rows:
                 return .none
@@ -75,6 +73,35 @@ struct FIleBrowserDomain {
         }
         .forEach(\.rows, action: \.rows) {
             Self()
+        }
+    }
+
+    private func fetchBucketObjects(state: inout State) -> Effect<Self.Action> {
+        let bucket = state.bucketName
+        let path = state.path
+
+        return .run { send in
+            
+            let objects = try await s3Bucket.getObjects(bucket: bucket, prefix: path)
+            let rows = objects.compactMap{ (object) -> State? in
+                guard let objectName = object.name.split(separator: "/").last else {return nil }
+                return State(name: String(objectName), isFile: object.isFile, path: object.name)
+            }
+
+            await send(.set(IdentifiedArrayOf(uniqueElements: rows)))
+        }
+    }
+
+    private func loginIfNeeded(state: inout State) -> Effect<Self.Action> {
+        return .run { send in
+            if !s3Bucket.loggedin {
+                try await s3Bucket.login(
+                    accessKey: keychain.accessKey,
+                    secret: keychain.secret,
+                    region: keychain.region
+                )
+            }
+            await send(.successfulLoginInS3)
         }
     }
 }
