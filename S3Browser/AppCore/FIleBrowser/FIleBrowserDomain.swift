@@ -152,7 +152,7 @@ struct FIleBrowserDomain {
     private func transformObjectsToRows(objects: [S3BucketObject]) -> Effect<Self.Action> {
         return .run { send in
 
-            let rows = objects.compactMap { (object) -> State? in
+            var rows = objects.compactMap { (object) -> State? in
                 guard let name = object.key.split(separator: "/").last else { return nil }
                 let existsLocally = s3Bucket.localFileExists(for: object.key)
                 return State(
@@ -162,6 +162,7 @@ struct FIleBrowserDomain {
                     existsLocally: existsLocally
                 )
             }
+            rows.sort(using: SortDescriptor(\.name, order: .forward))
             await send(.set(IdentifiedArrayOf(uniqueElements: rows)), animation: .default)
         }
     }

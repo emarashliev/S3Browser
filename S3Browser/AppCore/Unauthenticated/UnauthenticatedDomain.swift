@@ -18,6 +18,7 @@ struct UnauthenticatedDomain {
         var bucket = ""
         var region = ""
         var isComplete = false
+        var isLoading = false
         @Shared(.appStorage("logged")) var loggedin = false
         @Shared(.appStorage("bucket-name")) var bucketName = ""
     }
@@ -57,6 +58,7 @@ struct UnauthenticatedDomain {
             case .successfulKeychainSave:
                 return successfulKeychainSave(state: &state)
             case let .handleError(error):
+                state.isLoading = false
                 state.alert =  AlertState {
                     TextState(error.localizedDescription)
                 } actions: {
@@ -108,6 +110,8 @@ struct UnauthenticatedDomain {
     }
 
     private func signInPressed(state: inout State) -> Effect<Self.Action> {
+        state.isLoading = true
+
         let bucket = state.bucket
         let accessKey = state.accessKey
         let secret = state.secret
@@ -157,6 +161,7 @@ struct UnauthenticatedDomain {
     private func successfulKeychainSave(state: inout State) -> Effect<Self.Action> {
         state.bucketName = state.bucket
         state.loggedin = true
+        state.isLoading = false
         return .none
     }
 }
