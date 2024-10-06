@@ -34,7 +34,7 @@ enum S3BucketServiceError: Error, LocalizedError {
 protocol S3Bucket {
     var loggedin: Bool { get }
     func getBucketRegion(bucket: String, accessKey: String, secret: String) async throws -> String
-    func login(accessKey: String, secret: String, region: String) async throws
+    func login(bucket: String, accessKey: String, secret: String, region: String) async throws
     func getObjects(bucket: String, prefix: String ) async throws -> [S3BucketObject]
     func downloadFile(bucket: String, key: String) async throws
     func localFileExists(for key: String) -> Bool
@@ -52,10 +52,11 @@ final class S3BucketService: S3Bucket {
         return try await bucketLocator.getLocation()
     }
     
-    func login(accessKey: String, secret: String, region: String) async throws {
-        loggedin = true
+    func login(bucket: String, accessKey: String, secret: String, region: String) async throws {
         let constructor = S3ClientConstructor(accessKey: accessKey, secret: secret, region: region)
         client = try await constructor.getClient()
+        _ = try await getObjects(bucket: bucket)
+        loggedin = true
     }
 
     func getObjects(bucket: String, prefix: String = "") async throws -> [S3BucketObject] {

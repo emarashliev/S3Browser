@@ -39,7 +39,7 @@ struct AuthenticatedDomain {
             case .successfulLogout:
                 return .run { send in
                     try await keychain.clear()
-                    await send(.successfulKeychainClear)
+                    await send(.successfulKeychainClear, animation: .easeInOut)
                 }
                 
             case .successfulKeychainClear:

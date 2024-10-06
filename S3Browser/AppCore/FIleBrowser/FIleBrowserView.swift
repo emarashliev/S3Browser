@@ -41,8 +41,9 @@ struct FIleBrowserView: View {
                 Button {
                     store.send(.logoutPressed)
                 } label: {
-                    Text("Logout")
+                    Image(systemName: "person.crop.circle.fill")                        .foregroundStyle(LinearGradient.appColor)
                 }
+                .alert($store.scope(state: \.alert, action: \.alert))
             }
         }
         .onAppear { store.send(.onAppear) }

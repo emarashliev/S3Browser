@@ -25,7 +25,7 @@ struct UnauthenticatedView: View {
                 InputView(data: $store.region, title: "Region", type: .nonSecure)
             }
             .padding(.bottom, 16)
-            
+
             Button {
                 store.send(.signInPressed)
             } label: {
@@ -45,6 +45,7 @@ struct UnauthenticatedView: View {
             .disabled(!store.isComplete)
         }
         .padding()
+        .alert($store.scope(state: \.alert, action: \.alert))
     }
 }
 

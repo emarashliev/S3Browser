@@ -9,9 +9,10 @@ import ComposableArchitecture
 
 @Reducer
 struct UnauthenticatedDomain {
-    
+
     @ObservableState
     struct State {
+        @Presents var alert: AlertState<Action.Alert>?
         var accessKey = ""
         var secret = ""
         var bucket = ""
@@ -20,15 +21,19 @@ struct UnauthenticatedDomain {
         @Shared(.appStorage("logged")) var loggedin = false
         @Shared(.appStorage("bucket-name")) var bucketName = ""
     }
-    
+
     enum Action: BindableAction {
         case binding(BindingAction<State>)
         case signInPressed
         case set(region: String)
         case successfulLogin
         case successfulKeychainSave
+        case handleError(Error)
+        case alert(PresentationAction<Alert>)
+
+        enum Alert: Equatable {}
     }
-    
+
     @Dependency(\.keychain) var keychain
     @Dependency(\.s3Bucket) var s3Bucket
 
@@ -51,23 +56,38 @@ struct UnauthenticatedDomain {
 
             case .successfulKeychainSave:
                 return successfulKeychainSave(state: &state)
+            case let .handleError(error):
+                state.alert =  AlertState {
+                    TextState(error.localizedDescription)
+                } actions: {
+                    ButtonState(role: .cancel) {
+                        TextState("OK")
+                    }
+                }
+                return .run { _ in
+                    throw error
+                }
+
+            case .alert:
+                return .none
             }
         }
+        .ifLet(\.$alert, action: \.alert)
     }
 
     private func binding(state: inout State) -> Effect<Self.Action> {
         if
             state.bucket.count > 4 &&
-            state.accessKey.count > 16  &&
-            state.secret.count > 36 &&
-            state.region.count > 4
+                state.accessKey.count > 16  &&
+                state.secret.count > 36 &&
+                state.region.count > 4
 
         {
             state.isComplete = true
         } else if
             state.bucket.count > 4 &&
-            state.accessKey.count > 16  &&
-            state.secret.count > 36
+                state.accessKey.count > 16  &&
+                state.secret.count > 36
         {
             let bucket = state.bucket
             let accessKey = state.accessKey
@@ -80,7 +100,7 @@ struct UnauthenticatedDomain {
                     secret: secret
                 )
                 await send(.set(region: region))
-            }
+            } 
         } else {
             state.isComplete = false
         }
@@ -88,17 +108,22 @@ struct UnauthenticatedDomain {
     }
 
     private func signInPressed(state: inout State) -> Effect<Self.Action> {
+        let bucket = state.bucket
         let accessKey = state.accessKey
         let secret = state.secret
         let region = state.region
 
         return .run { send in
-            try await s3Bucket.login(
+           try await s3Bucket.login(
+                bucket: bucket,
                 accessKey: accessKey,
                 secret: secret,
                 region: region
             )
+
             await send(.successfulLogin)
+        } catch: { error, send in
+            await send(.handleError(error))
         }
     }
 
@@ -106,9 +131,9 @@ struct UnauthenticatedDomain {
         state.region = region
         if
             state.bucket.count > 4 &&
-            state.accessKey.count > 16  &&
-            state.secret.count > 36 &&
-            state.region.count > 4
+                state.accessKey.count > 16  &&
+                state.secret.count > 36 &&
+                state.region.count > 4
 
         {
             state.isComplete = true
@@ -125,7 +150,7 @@ struct UnauthenticatedDomain {
             try await keychain.set(value: accessKey, key: .accessKey)
             try await keychain.set(value: secret, key: .secret)
             try await keychain.set(value: region, key: .region)
-            await send(.successfulKeychainSave)
+            await send(.successfulKeychainSave, animation: .easeInOut)
         }
     }
 

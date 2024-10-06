@@ -13,6 +13,7 @@ struct FIleBrowserDomain {
 
     @ObservableState
     struct State: Equatable, Identifiable {
+        @Presents var alert: AlertState<Action.Alert>?
         let id: UUID
         var name: String
         let isFile: Bool
@@ -51,7 +52,12 @@ struct FIleBrowserDomain {
         indirect case rows(IdentifiedActionOf<FIleBrowserDomain>)
         case logoutPressed
         case downloadComponent(DownloadComponentDomain.Action)
+        case alert(PresentationAction<Alert>)
+        case fetchResult(Result<[S3BucketObject], Error>)
 
+        enum Alert: Equatable {
+            case logout
+        }
     }
 
     @Dependency(\.s3Bucket) var s3Bucket
@@ -70,6 +76,15 @@ struct FIleBrowserDomain {
             case .successfulLoginInS3:
                 return fetchBucketObjects(state: &state)
 
+            case let .fetchResult(.success(objects)):
+                return transformObjectsToRows(objects: objects)
+
+            case let .fetchResult(.failure(error)):
+                state.alert = errorAlert
+                return .run { _ in
+                    throw error
+                }
+
             case let .set(rows):
                 state.rows = rows
                 return .none
@@ -78,16 +93,46 @@ struct FIleBrowserDomain {
                 return .none
 
             case .logoutPressed:
+                state.alert = logoutAlert
+                return .none
+
+            case .alert(.presented(.logout)):
                 state.loggedin = false
                 return .none
 
             case .downloadComponent:
                 return .none
 
+            case .alert:
+                return .none
             }
         }
+        .ifLet(\.$alert, action: \.alert)
         .forEach(\.rows, action: \.rows) {
             Self()
+        }
+    }
+
+    private var logoutAlert: AlertState<Action.Alert> {
+        AlertState {
+            TextState("Do you want Logout?")
+        } actions: {
+            ButtonState(role: .destructive, action: .send(.logout)) {
+                TextState("Logout")
+            }
+            ButtonState(role: .cancel) {
+                TextState("Cancel")
+            }
+        }
+    }
+
+    private var errorAlert: AlertState<Action.Alert> {
+        AlertState {
+            TextState("Something went wrong")
+        } actions: {
+            ButtonState(role: .cancel) {
+                TextState("OK")
+            }
         }
     }
 
@@ -96,9 +141,18 @@ struct FIleBrowserDomain {
         let path = state.path
 
         return .run { send in
-            
+
             let objects = try await s3Bucket.getObjects(bucket: bucket, prefix: path)
-            let rows = objects.compactMap{ (object) -> State? in
+            await send(.fetchResult(.success(objects)))
+        } catch: { error, send in
+            await send(.fetchResult(.failure(error)), animation: .default)
+        }
+    }
+
+    private func transformObjectsToRows(objects: [S3BucketObject]) -> Effect<Self.Action> {
+        return .run { send in
+
+            let rows = objects.compactMap { (object) -> State? in
                 guard let name = object.key.split(separator: "/").last else { return nil }
                 let existsLocally = s3Bucket.localFileExists(for: object.key)
                 return State(
@@ -108,15 +162,16 @@ struct FIleBrowserDomain {
                     existsLocally: existsLocally
                 )
             }
-
-            await send(.set(IdentifiedArrayOf(uniqueElements: rows)))
+            await send(.set(IdentifiedArrayOf(uniqueElements: rows)), animation: .default)
         }
     }
 
     private func loginIfNeeded(state: inout State) -> Effect<Self.Action> {
+        let bucket = state.bucketName
         return .run { send in
             if !s3Bucket.loggedin {
                 try await s3Bucket.login(
+                    bucket: bucket,
                     accessKey: keychain.accessKey,
                     secret: keychain.secret,
                     region: keychain.region

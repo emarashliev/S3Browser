@@ -24,11 +24,9 @@ struct DownloadComponentDomain {
         case alert(PresentationAction<Alert>)
         case buttonTapped
         case download(Result<Void, Error>)
+        case stopDownloaing
 
-        enum Alert {
-            case deleteButtonTapped
-            case stopButtonTapped
-        }
+        enum Alert: Equatable {}
     }
 
     @Dependency(\.s3Bucket) var s3Bucket
@@ -36,23 +34,15 @@ struct DownloadComponentDomain {
     var body: some Reducer<State, Action> {
         Reduce { state, action in
             switch action {
-            case .alert(.presented(.deleteButtonTapped)):
-                state.mode = .notDownloaded
-                return .none
-
-            case .alert(.presented(.stopButtonTapped)):
+            case .stopDownloaing:
                 state.mode = .notDownloaded
                 return .cancel(id: state.id)
-
-            case .alert:
-                return .none
 
             case .buttonTapped:
                 return buttonTapped(state: &state)
 
             case .download(.success):
                 state.mode = .downloaded
-                state.alert = nil
                 return .none
 
             case let .download(.failure(error)):
@@ -61,22 +51,12 @@ struct DownloadComponentDomain {
                 return .run { _ in
                     throw error
                 }
+
+            case .alert:
+                return .none
             }
         }
         .ifLet(\.$alert, action: \.alert)
-    }
-
-    private var stopAlert: AlertState<Action.Alert> {
-        AlertState {
-            TextState("Do you want to stop downloading?")
-        } actions: {
-            ButtonState(role: .destructive, action: .send(.stopButtonTapped, animation: .default)) {
-                TextState("Stop")
-            }
-            ButtonState(role: .cancel) {
-                TextState("No")
-            }
-        }
     }
 
     private var errorAlert: AlertState<Action.Alert> {
@@ -95,11 +75,10 @@ struct DownloadComponentDomain {
             return .none
 
         case .downloading:
-            state.alert = stopAlert
-            return .none
+            return .send(.stopDownloaing, animation: .default)
 
         case .notDownloaded:
-            state.mode = .startingToDownload
+            state.mode = .downloading
 
             let bucket = state.bucketName
             let key = state.key
@@ -110,10 +89,6 @@ struct DownloadComponentDomain {
                 await send(.download(.failure(error)), animation: .default)
             }
                 .cancellable(id: state.id)
-
-        case .startingToDownload:
-            state.alert = stopAlert
-            return .none
         }
     }
 }
@@ -122,13 +97,12 @@ enum Mode: Equatable {
     case downloaded
     case downloading
     case notDownloaded
-    case startingToDownload
 
     var isDownloading: Bool {
         switch self {
         case .downloaded, .notDownloaded:
             return false
-        case .downloading, .startingToDownload:
+        case .downloading:
             return true
         }
     }

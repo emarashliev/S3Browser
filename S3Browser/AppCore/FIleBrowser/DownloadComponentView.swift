@@ -48,13 +48,33 @@ struct DownloadComponentView: View {
 }
 
 #Preview {
-    DownloadComponentView(
-        store: Store(
-            initialState: DownloadComponentDomain.State(
-                id: UUID(), 
-                key: "some/test/key",
-                mode: .notDownloaded
-            )
-        ) {}
-    )
+    HStack {
+        DownloadComponentView(
+            store: Store(
+                initialState: DownloadComponentDomain.State(
+                    id: UUID(),
+                    key: "some/test/key",
+                    mode: .notDownloaded
+                )
+            ) {}
+        )
+        DownloadComponentView(
+            store: Store(
+                initialState: DownloadComponentDomain.State(
+                    id: UUID(),
+                    key: "some/test/key",
+                    mode: .downloading
+                )
+            ) {}
+        )
+        DownloadComponentView(
+            store: Store(
+                initialState: DownloadComponentDomain.State(
+                    id: UUID(),
+                    key: "some/test/key",
+                    mode: .downloaded
+                )
+            ) {}
+        )
+    }
 }

@@ -13,10 +13,10 @@ struct CircularLoadingView: View {
     var body: some View {
         ZStack {
             Circle()
-                .stroke(Color(.lightGray), lineWidth: 20)
+                .stroke(Color(.lightGray), lineWidth: 2)
             Circle()
                 .trim(from: 0, to: 0.2)
-                .stroke(LinearGradient.appColor, lineWidth: 10)
+                .stroke(style: StrokeStyle(lineWidth: 2, lineCap: .round))
                 .rotationEffect(Angle(degrees: isLoading ? 360 : 0))
                 .animation(
                     Animation.linear(duration: 1).repeatForever(autoreverses: false),
@@ -26,10 +26,9 @@ struct CircularLoadingView: View {
                     self.isLoading = true
                 }
         }
-        .padding()
     }
 }
 
 #Preview {
-    CircularLoadingView()
+    CircularLoadingView().frame(width: 44, height: 44)
 }
