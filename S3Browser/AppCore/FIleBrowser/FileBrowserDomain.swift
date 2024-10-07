@@ -1,5 +1,5 @@
 //
-//  FIleBrowserDomain.swift
+//  FileBrowserDomain.swift
 //  S3Browser
 //
 //  Created by Emil Marashliev on 4.10.24.
@@ -9,7 +9,7 @@ import ComposableArchitecture
 import Foundation
 
 @Reducer
-struct FIleBrowserDomain {
+struct FileBrowserDomain {
 
     @ObservableState
     struct State: Equatable, Identifiable {
@@ -49,7 +49,7 @@ struct FIleBrowserDomain {
         case onAppear
         case successfulLoginInS3
         case set(IdentifiedArrayOf<State>)
-        indirect case rows(IdentifiedActionOf<FIleBrowserDomain>)
+        indirect case rows(IdentifiedActionOf<FileBrowserDomain>)
         case logoutPressed
         case downloadComponent(DownloadComponentDomain.Action)
         case alert(PresentationAction<Alert>)

@@ -8,8 +8,8 @@
 import ComposableArchitecture
 import SwiftUI
 
-struct FIleBrowserView: View {
-    @Bindable var store: StoreOf<FIleBrowserDomain>
+struct FileBrowserView: View {
+    @Bindable var store: StoreOf<FileBrowserDomain>
 
     var body: some View {
         List(store.scope(state: \.rows, action: \.rows)) { rowStore in
@@ -26,7 +26,7 @@ struct FIleBrowserView: View {
                 }
             } else {
                 NavigationLink {
-                    FIleBrowserView(store: rowStore)
+                    FileBrowserView(store: rowStore)
                 } label: {
                     Image(systemName: "folder.fill")
                         .foregroundStyle(LinearGradient.appColor)

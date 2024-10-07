@@ -13,10 +13,10 @@ struct AuthenticatedView: View {
     
     var body: some View {
         NavigationStack {
-            let store = Store(initialState: FIleBrowserDomain.State(name: store.bucketName, isFile: false)) {
-                FIleBrowserDomain()
+            let store = Store(initialState: FileBrowserDomain.State(name: store.bucketName, isFile: false)) {
+                FileBrowserDomain()
             }
-            FIleBrowserView(store: store)
+            FileBrowserView(store: store)
         }
         .onAppear { store.send(.onAppear) }
     }
