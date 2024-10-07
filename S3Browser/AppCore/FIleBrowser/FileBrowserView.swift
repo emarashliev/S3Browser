@@ -88,3 +88,19 @@ struct FileBrowserView: View {
         }
     }
 }
+
+#Preview {
+    let rows = [
+        FileBrowserDomain.State(name: "Folder 1", isFile: false),
+        FileBrowserDomain.State(name: "File 1", isFile: true)
+    ]
+    let state = FileBrowserDomain.State(
+        name: "Bucket name",
+        isFile: false,
+        rows: IdentifiedArrayOf(uniqueElements: rows)
+    )
+    let store = Store(initialState: state) {
+        FileBrowserDomain()
+    }
+    FileBrowserView(store: store)
+}

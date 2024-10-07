@@ -96,13 +96,16 @@ struct UnauthenticatedDomain {
             let secret = state.secret
 
             return .run { send in
-                let region = try await s3Bucket.getBucketRegion(
-                    bucket: bucket,
-                    accessKey: accessKey,
-                    secret: secret
-                )
-                await send(.set(region: region))
-            } 
+                try await withTaskCancellationHandler {
+                    try await Task.sleep(for: .milliseconds(300))
+                    let region = try await s3Bucket.getBucketRegion(
+                        bucket: bucket,
+                        accessKey: accessKey,
+                        secret: secret
+                    )
+                    await send(.set(region: region))
+                } onCancel: {}
+            }
         } else {
             state.isComplete = false
         }
