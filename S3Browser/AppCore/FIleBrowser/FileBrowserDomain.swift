@@ -19,6 +19,7 @@ struct FileBrowserDomain {
         let isFile: Bool
         var path: String
         var downloadComponent: DownloadComponentDomain.State
+        var isRowsFetched = false
         var rows: IdentifiedArrayOf<State> = []
         @Shared(.appStorage("logged")) var loggedin = false
         @Shared(.appStorage("bucket-name")) var bucketName = ""
@@ -87,6 +88,7 @@ struct FileBrowserDomain {
 
             case let .set(rows):
                 state.rows = rows
+                state.isRowsFetched = true
                 return .none
 
             case .rows:

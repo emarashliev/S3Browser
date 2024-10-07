@@ -18,6 +18,7 @@ struct AuthenticatedView: View {
             }
             FileBrowserView(store: store)
         }
+        .tint(LinearGradient.appColor)
         .onAppear { store.send(.onAppear) }
     }
 }
