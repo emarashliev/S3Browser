@@ -13,19 +13,35 @@ struct FileBrowserView: View {
     
     var body: some View {
         if store.rows.isEmpty && !store.isRowsFetched {
-            ProgressView()
-                .navigationTitle(store.name)
-                .toolbar {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button {
-                            store.send(.logoutPressed)
-                        } label: {
-                            Image(systemName: "person.crop.circle.fill")                        .foregroundStyle(LinearGradient.appColor)
+            ZStack {
+                Color(.systemGray6).ignoresSafeArea()
+                
+                ProgressView()
+                    .navigationTitle(store.name)
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            HStack {
+                                Button {
+                                } label: {
+                                    Button {
+                                        store.send(.reorderRows, animation: .default)
+                                    } label: {
+                                        Image(systemName: "arrow.up.arrow.down")                        .foregroundStyle(LinearGradient.appColor)
+                                    }
+                                    
+                                }
+                                
+                                Button {
+                                    store.send(.logoutPressed)
+                                } label: {
+                                    Image(systemName: "person.crop.circle.fill")                        .foregroundStyle(LinearGradient.appColor)
+                                }
+                                .alert($store.scope(state: \.alert, action: \.alert))
+                            }
                         }
-                        .alert($store.scope(state: \.alert, action: \.alert))
                     }
-                }
-                .onAppear { store.send(.onAppear) }
+                    .onAppear { store.send(.onAppear) }
+            }
         } else {
             List(store.scope(state: \.rows, action: \.rows)) { rowStore in
                 if rowStore.isFile {
@@ -53,12 +69,20 @@ struct FileBrowserView: View {
             .navigationTitle(store.name)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        store.send(.logoutPressed)
-                    } label: {
-                        Image(systemName: "person.crop.circle.fill")                        .foregroundStyle(LinearGradient.appColor)
+                    HStack {
+                        Button {
+                            store.send(.reorderRows, animation: .default)
+                        } label: {
+                            Image(systemName: "arrow.up.arrow.down")                        .foregroundStyle(LinearGradient.appColor)
+                        }
+                        
+                        Button {
+                            store.send(.logoutPressed)
+                        } label: {
+                            Image(systemName: "person.crop.circle.fill")                        .foregroundStyle(LinearGradient.appColor)
+                        }
+                        .alert($store.scope(state: \.alert, action: \.alert))
                     }
-                    .alert($store.scope(state: \.alert, action: \.alert))
                 }
             }
         }

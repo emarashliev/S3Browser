@@ -20,6 +20,7 @@ struct FileBrowserDomain {
         var path: String
         var downloadComponent: DownloadComponentDomain.State
         var isRowsFetched = false
+        var order: SortOrder = .forward
         var rows: IdentifiedArrayOf<State> = []
         @Shared(.appStorage("logged")) var loggedin = false
         @Shared(.appStorage("bucket-name")) var bucketName = ""
@@ -52,6 +53,7 @@ struct FileBrowserDomain {
         case set(IdentifiedArrayOf<State>)
         indirect case rows(IdentifiedActionOf<FileBrowserDomain>)
         case logoutPressed
+        case reorderRows
         case downloadComponent(DownloadComponentDomain.Action)
         case alert(PresentationAction<Alert>)
         case fetchResult(Result<[S3BucketObject], Error>)
@@ -78,13 +80,18 @@ struct FileBrowserDomain {
                 return fetchBucketObjects(state: &state)
 
             case let .fetchResult(.success(objects)):
-                return transformObjectsToRows(objects: objects)
+                return transformObjectsToRows(state: state, objects: objects)
 
             case let .fetchResult(.failure(error)):
                 state.alert = errorAlert
                 return .run { _ in
                     throw error
                 }
+
+            case .reorderRows:
+                state.order = state.order == .forward ? .reverse : .forward
+                state.rows.sort(using: SortDescriptor(\.name, order: state.order))
+                return .none
 
             case let .set(rows):
                 state.rows = rows
@@ -151,7 +158,7 @@ struct FileBrowserDomain {
         }
     }
 
-    private func transformObjectsToRows(objects: [S3BucketObject]) -> Effect<Self.Action> {
+    private func transformObjectsToRows(state: State, objects: [S3BucketObject]) -> Effect<Self.Action> {
         return .run { send in
 
             var rows = objects.compactMap { (object) -> State? in
@@ -164,7 +171,7 @@ struct FileBrowserDomain {
                     existsLocally: existsLocally
                 )
             }
-            rows.sort(using: SortDescriptor(\.name, order: .forward))
+            rows.sort(using: SortDescriptor(\.name, order: state.order))
             await send(.set(IdentifiedArrayOf(uniqueElements: rows)), animation: .default)
         }
     }

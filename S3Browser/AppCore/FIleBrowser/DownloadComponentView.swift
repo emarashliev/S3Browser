@@ -23,7 +23,6 @@ struct DownloadComponentView: View {
         .onDisappear { isVisible = false }
     }
 
-    @MainActor
     private var button: some View {
         Button {
             store.send(.buttonTapped)
