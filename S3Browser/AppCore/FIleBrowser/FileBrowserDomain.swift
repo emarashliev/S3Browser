@@ -21,7 +21,7 @@ struct FileBrowserDomain {
         var downloadComponent: DownloadComponentDomain.State
         var isRowsFetched = false
         var order: SortOrder = .forward
-        var rows: IdentifiedArrayOf<State> = []
+        var rows: IdentifiedArrayOf<Self> = []
         @Shared(.appStorage("logged")) var loggedin = false
         @Shared(.appStorage("bucket-name")) var bucketName = ""
 

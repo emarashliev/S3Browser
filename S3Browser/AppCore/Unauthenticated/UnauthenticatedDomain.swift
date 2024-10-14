@@ -78,34 +78,28 @@ struct UnauthenticatedDomain {
     }
 
     private func binding(state: inout State) -> Effect<Self.Action> {
-        if
-            state.bucket.count > 4 &&
-                state.accessKey.count > 16  &&
-                state.secret.count > 36 &&
-                state.region.count > 4
 
-        {
+        if !state.bucket.isEmpty && !state.accessKey.isEmpty &&
+            !state.secret.isEmpty && !state.region.isEmpty {
+
             state.isComplete = true
-        } else if
-            state.bucket.count > 4 &&
-                state.accessKey.count > 16  &&
-                state.secret.count > 36
-        {
+        } else if !state.bucket.isEmpty && !state.accessKey.isEmpty && !state.secret.isEmpty {
             let bucket = state.bucket
             let accessKey = state.accessKey
             let secret = state.secret
 
+            enum CancelID { case debounce }
+
             return .run { send in
-                try await withTaskCancellationHandler {
-                    try await Task.sleep(for: .milliseconds(300))
-                    let region = try await s3Bucket.getBucketRegion(
-                        bucket: bucket,
-                        accessKey: accessKey,
-                        secret: secret
-                    )
-                    await send(.set(region: region))
-                } onCancel: {}
+                try await Task.sleep(for: .milliseconds(600))
+                let region = try await s3Bucket.getBucketRegion(
+                    bucket: bucket,
+                    accessKey: accessKey,
+                    secret: secret
+                )
+                await send(.set(region: region))
             }
+            .cancellable(id: CancelID.debounce, cancelInFlight: true)
         } else {
             state.isComplete = false
         }
@@ -136,13 +130,9 @@ struct UnauthenticatedDomain {
 
     private func setRegion(state: inout State, region: String) -> Effect<Self.Action> {
         state.region = region
-        if
-            state.bucket.count > 4 &&
-                state.accessKey.count > 16  &&
-                state.secret.count > 36 &&
-                state.region.count > 4
-
-        {
+        if !state.bucket.isEmpty && !state.accessKey.isEmpty &&
+            !state.secret.isEmpty && !state.region.isEmpty {
+            
             state.isComplete = true
         }
         return .none
