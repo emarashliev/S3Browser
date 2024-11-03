@@ -578,7 +578,7 @@
 			repositoryURL = "https://github.com/awslabs/aws-sdk-swift";
 			requirement = {
 				kind = exactVersion;
-				version = 1.0.7;
+				version = 1.0.33;
 			};
 		};
 		6C53E2DD2CA8CF5D0068D9F2 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */ = {
@@ -586,7 +586,7 @@
 			repositoryURL = "https://github.com/pointfreeco/swift-composable-architecture";
 			requirement = {
 				kind = exactVersion;
-				version = 1.15.1;
+				version = 1.15.2;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
