@@ -89,7 +89,7 @@ final class S3BucketService: S3Bucket {
 
         let input = GetObjectInput(bucket: bucket, key: key)
         let output = try await client.getObject(input: input)
-
+        let url = try await client.presignedURLForGetObject(input: input, expiration: 1000)
         guard let body = output.body else {
             throw S3BucketServiceError.getObjectBody("GetObjectInput missing body.")
         }

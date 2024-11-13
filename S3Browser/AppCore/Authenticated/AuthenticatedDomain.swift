@@ -11,7 +11,7 @@ import ComposableArchitecture
 struct AuthenticatedDomain {
 
     @ObservableState
-    struct State {
+    struct State: Equatable {
         @Shared(.appStorage("logged")) var loggedin = false
         @Shared(.appStorage("bucket-name")) var bucketName = ""
     }
