@@ -11,7 +11,7 @@ import ComposableArchitecture
 struct UnauthenticatedDomain {
 
     @ObservableState
-    struct State {
+    struct State: Equatable {
         @Presents var alert: AlertState<Action.Alert>?
         var accessKey = ""
         var secret = ""

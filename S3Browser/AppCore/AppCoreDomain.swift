@@ -11,7 +11,7 @@ import ComposableArchitecture
 struct AppCoreDomain {
 
     @ObservableState
-    enum State {
+    enum State: Equatable {
         @Shared(.appStorage("logged")) static var loggedin = false
 
         case loggedIn(AuthenticatedDomain.State)
