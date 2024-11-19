@@ -12,6 +12,8 @@ struct InputView: View {
         case secure
         case nonSecure
     }
+    
+    @Environment(\.colorScheme) var colorScheme
 
     @Binding var data: String
     var title: String
@@ -44,7 +46,7 @@ struct InputView: View {
                     .foregroundColor(Color.gray)
                     .multilineTextAlignment(.leading)
                     .padding(4)
-                    .background(.white)
+                    .background(colorScheme == .dark ? .black : .white)
                 Spacer()
             }
             .padding(.leading, 8)
