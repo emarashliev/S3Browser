@@ -106,7 +106,7 @@ struct FileBrowserDomain {
                 return .none
 
             case .alert(.presented(.logout)):
-                state.loggedin = false
+                state.$loggedin.withLock { $0 = false }
                 return .none
 
             case .downloadComponent:

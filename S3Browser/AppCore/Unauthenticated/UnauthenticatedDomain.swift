@@ -152,8 +152,8 @@ struct UnauthenticatedDomain {
     }
 
     private func successfulKeychainSave(state: inout State) -> Effect<Self.Action> {
-        state.bucketName = state.bucket
-        state.loggedin = true
+        state.$bucketName.withLock { $0 = state.bucket }
+        state.$loggedin.withLock { $0 = true }
         state.isLoading = false
         return .none
     }

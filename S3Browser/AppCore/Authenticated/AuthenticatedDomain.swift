@@ -43,7 +43,7 @@ struct AuthenticatedDomain {
                 }
                 
             case .successfulKeychainClear:
-                state.bucketName = ""
+                state.$bucketName.withLock { $0 = "" }
                 return .none
 
             case .onAppear:

@@ -40,7 +40,7 @@ enum KeychainServiceKey: String {
 }
 
 
-protocol Keychainable {
+protocol Keychain {
     var accessKey: String { get async throws }
     var secret: String { get async throws }
     var region: String { get async throws }
@@ -49,7 +49,7 @@ protocol Keychainable {
     func clear() async throws(KeychainServiceError)
 }
 
-actor KeychainService: Keychainable {
+actor KeychainService: Keychain {
     var accessKey: String {
         get throws(KeychainServiceError) {
             guard
@@ -137,12 +137,12 @@ actor KeychainService: Keychainable {
 }
 
 extension DependencyValues {
-    var keychain: any Keychainable {
+    var keychain: any Keychain {
         get { self[KeychainKey.self] }
         set { self[KeychainKey.self] = newValue }
     }
     
     private enum KeychainKey: DependencyKey {
-        static let liveValue: any Keychainable = KeychainService()
+        static let liveValue: any Keychain = KeychainService()
     }
 }
