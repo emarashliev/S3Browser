@@ -1,5 +1,5 @@
 //
-//  AuthenticatedTests.swift
+//  AuthenticatedDomainTests.swift
 //  S3Browser
 //
 //  Created by Emil Marashliev on 22.10.24.
@@ -10,7 +10,7 @@ import ComposableArchitecture
 @testable import S3Browser
 
 @MainActor
-struct AuthenticatedTests {
+struct AuthenticatedDomainTests {
 
     @Test
     func successfulKeychainClear() async throws {
@@ -21,7 +21,7 @@ struct AuthenticatedTests {
         }
 
         await store.send(AuthenticatedDomain.Action.successfulKeychainClear) {
-            $0.bucketName = ""
+            $0.$bucketName.withLock { $0 = "" }
         }
     }
 }

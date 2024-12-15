@@ -6,9 +6,12 @@
 //
 
 import ComposableArchitecture
+import OSLog
 
 @Reducer
 struct UnauthenticatedDomain {
+    
+    private let logger = Logger(subsystem: "com.emarashliev.S3Browser", category: "UnauthenticatedDomain")
 
     @ObservableState
     struct State: Equatable {
@@ -57,18 +60,9 @@ struct UnauthenticatedDomain {
 
             case .successfulKeychainSave:
                 return successfulKeychainSave(state: &state)
+                
             case let .handleError(error):
-                state.isLoading = false
-                state.alert =  AlertState {
-                    TextState(error.localizedDescription)
-                } actions: {
-                    ButtonState(role: .cancel) {
-                        TextState("OK")
-                    }
-                }
-                return .run { _ in
-                    throw error
-                }
+                return handleError(state: &state, error: error)
 
             case .alert:
                 return .none
@@ -155,6 +149,19 @@ struct UnauthenticatedDomain {
         state.$bucketName.withLock { $0 = state.bucket }
         state.$loggedin.withLock { $0 = true }
         state.isLoading = false
+        return .none
+    }
+    
+    private func handleError(state: inout State, error: Error) -> Effect<Self.Action> {
+        state.isLoading = false
+        state.alert =  AlertState {
+            TextState(error.localizedDescription)
+        } actions: {
+            ButtonState(role: .cancel) {
+                TextState("OK")
+            }
+        }
+        logger.error("Operation failed with error: \(String(describing: error))")
         return .none
     }
 }
