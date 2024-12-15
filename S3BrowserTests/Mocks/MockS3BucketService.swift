@@ -8,7 +8,7 @@
 import Foundation
 @testable import S3Browser
 
-class TestS3BucketService: S3Bucket {
+class MockS3BucketService: S3Bucket {
     var loggedin = false
     
     func getBucketRegion(bucket: String, accessKey: String, secret: String) async throws -> String {
@@ -36,7 +36,7 @@ struct TestS3BucketServiceTestError: Error, LocalizedError {
     var errorDescription: String? { "Test error" }
 }
 
-class TestS3BucketServiceThrows: TestS3BucketService {
+class TestS3BucketServiceThrows: MockS3BucketService {
     
     override func login(bucket: String, accessKey: String, secret: String, region: String) async throws {
         throw TestS3BucketServiceTestError()

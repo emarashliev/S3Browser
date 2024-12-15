@@ -10,30 +10,32 @@ import ComposableArchitecture
 import Testing
 @testable import S3Browser
 
+
+fileprivate struct Cnstants {
+    static let accessKey = "testAccessKey_initial"
+    static let bucket = "testBucket_initial"
+    static let region = "testRegion_initial"
+    static let secret = "testSecret_initial"
+}
+
 @MainActor
 struct UnauthenticatedDomainTests {
-    let testS3Bucket: any S3Bucket = TestS3BucketService()
-    let testKeychain: any Keychain = TestKeychainService()
+    private let mockS3Bucket: any S3Bucket = MockS3BucketService()
+    private let mockKeychain: any Keychain = MockKeychainService()
     private let state = {
-        let testAccessKey = "testAccessKey"
-        let testBucket = "testBucket"
-        let testRegion = "testRegion"
-        let testSecret = "testSecret"
-        
-        return UnauthenticatedDomain.State(
-            accessKey: testAccessKey,
-            secret: testSecret,
-            bucket: testBucket,
-            region: testRegion
+        UnauthenticatedDomain.State(
+            accessKey: Cnstants.accessKey,
+            secret: Cnstants.secret,
+            bucket: Cnstants.bucket,
+            region: Cnstants.region
         )
     }()
     
-    @Test
+    @Test("UnauthenticatedDomain binding")
     func testBinding() async {
         let store = TestStore(initialState: UnauthenticatedDomain.State()) {
             UnauthenticatedDomain()
         }
-        
         store.exhaustivity = .off
         
         await store.send(.binding(.set(\.accessKey, "testAccessKey"))) {
@@ -55,15 +57,14 @@ struct UnauthenticatedDomainTests {
         }
     }
     
-    @Test
-    func testSignInPressed_SuccessfulLogin() async {
+    @Test("Successful login")
+    func signInPressedSuccessfulLogin() async {
         let store = TestStore(initialState: state) {
             UnauthenticatedDomain()
         } withDependencies: {
-            $0.s3Bucket = testS3Bucket
-            $0.keychain = testKeychain
+            $0.s3Bucket = mockS3Bucket
+            $0.keychain = mockKeychain
         }
-        
         store.exhaustivity = .off
         
         await store.send(.signInPressed) {
@@ -75,14 +76,13 @@ struct UnauthenticatedDomainTests {
         }
     }
     
-    @Test
-    func testSignInPressed_HandleError() async {
+    @Test("Handle sign in error")
+    func signInPressedHandleError() async {
         let store = TestStore(initialState: state) {
             UnauthenticatedDomain()
         } withDependencies: {
             $0.s3Bucket = TestS3BucketServiceThrows()
         }
-        
         store.exhaustivity = .off
         
         await store.send(.signInPressed) {
@@ -101,41 +101,39 @@ struct UnauthenticatedDomainTests {
         }
     }
     
-    @Test
-    func testSetRegion() async {
+    @Test("Set region")
+    func setRegion() async {
         let store = TestStore(initialState: state) {
             UnauthenticatedDomain()
         }
         
-        await store.send(.set(region: "testRegion_tets")) {
-            $0.region = "testRegion_tets"
+        await store.send(.set(region: "testRegion")) {
+            $0.region = "testRegion"
             $0.isComplete = true
         }
     }
     
-    @Test
-    func testSuccessfulKeychainSave() async {
+    @Test("Successful keychain save")
+    func successfulKeychainSave() async {
         let store = TestStore(initialState: state) {
             UnauthenticatedDomain()
         } withDependencies: {
-            class TestKeychainServiceSave: TestKeychainService {
+            class TestKeychainServiceSave: MockKeychainService {
                 override func set(value: String, key: KeychainServiceKey) async throws(KeychainServiceError) {
                     if key == .accessKey {
-                        #expect(value == "testAccessKey")
+                        #expect(value == Cnstants.accessKey)
                     } else if key == .secret {
-                        #expect(value == "testSecret")
+                        #expect(value == Cnstants.secret)
                     } else if key == .region {
-                        #expect(value == "testRegion")
+                        #expect(value == Cnstants.region)
                     }
                 }
             }
             $0.keychain = TestKeychainServiceSave()
         }
-        
         store.exhaustivity = .off
         
         await store.send(.successfulLogin)
-        
         await store.receive(\.successfulKeychainSave) {
             $0.$loggedin.withLock { $0 = true }
             $0.isLoading = false

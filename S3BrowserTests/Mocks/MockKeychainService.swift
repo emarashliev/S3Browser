@@ -7,7 +7,7 @@
 
 @testable import S3Browser
 
-class TestKeychainService: Keychain {
+class MockKeychainService: Keychain {
     var accessKey: String { "testAccessKey" }
     var secret: String { "testSecret" }
     var region: String { "testRegion" }
