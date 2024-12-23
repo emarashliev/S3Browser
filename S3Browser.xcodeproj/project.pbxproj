@@ -45,11 +45,6 @@
 			path = S3BrowserTests;
 			sourceTree = "<group>";
 		};
-		6C4C9E9B2CA73D6100D036B1 /* S3BrowserUITests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = S3BrowserUITests;
-			sourceTree = "<group>";
-		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -84,7 +79,6 @@
 			children = (
 				6C4C9E802CA73D5D00D036B1 /* S3Browser */,
 				6C4C9E912CA73D6000D036B1 /* S3BrowserTests */,
-				6C4C9E9B2CA73D6100D036B1 /* S3BrowserUITests */,
 				6C4C9E7F2CA73D5D00D036B1 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -162,9 +156,6 @@
 			dependencies = (
 				6C4C9E9A2CA73D6100D036B1 /* PBXTargetDependency */,
 			);
-			fileSystemSynchronizedGroups = (
-				6C4C9E9B2CA73D6100D036B1 /* S3BrowserUITests */,
-			);
 			name = S3BrowserUITests;
 			packageProductDependencies = (
 			);
@@ -207,6 +198,7 @@
 			packageReferences = (
 				6C4C9EAB2CA7411C00D036B1 /* XCRemoteSwiftPackageReference "aws-sdk-swift" */,
 				6C53E2DD2CA8CF5D0068D9F2 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */,
+				6CADC0192D18A89B0064B454 /* XCRemoteSwiftPackageReference "swift-sharing" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 6C4C9E7F2CA73D5D00D036B1 /* Products */;
@@ -587,6 +579,14 @@
 			requirement = {
 				kind = exactVersion;
 				version = 1.17.0;
+			};
+		};
+		6CADC0192D18A89B0064B454 /* XCRemoteSwiftPackageReference "swift-sharing" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pointfreeco/swift-sharing";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.1.1;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

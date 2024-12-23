@@ -92,7 +92,7 @@ struct UnauthenticatedDomainTests {
         await store.receive(\.handleError) {
             $0.isLoading = false
             $0.alert = AlertState {
-                TextState("Test error")
+                TextState(TestS3BucketServiceThrows.loginError.localizedDescription)
             } actions: {
                 ButtonState(role: .cancel) {
                     TextState("OK")

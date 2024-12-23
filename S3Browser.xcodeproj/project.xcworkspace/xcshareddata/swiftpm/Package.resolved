@@ -1,5 +1,5 @@
 {
-  "originHash" : "aaf367c1d77038e7d43a8b26ce9984f5c24617a42772f4b6384d18057ced1ace",
+  "originHash" : "d9fbd1198387f0718d5beffe38e9cb20010068c465a553ebbb26a7542cea7232",
   "pins" : [
     {
       "identity" : "aws-crt-swift",
@@ -141,8 +141,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pointfreeco/swift-sharing",
       "state" : {
-        "revision" : "5d3d1193225567d156dae16b2bb353ef261011f9",
-        "version" : "1.0.2"
+        "revision" : "974e51b3612317ba5883a73dc9fd9e2409a11f2d",
+        "version" : "1.1.1"
       }
     },
     {

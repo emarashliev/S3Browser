@@ -15,7 +15,6 @@ struct FileBrowserView: View {
         if store.rows.isEmpty && !store.isRowsFetched {
             ZStack {
                 Color(.systemGray6).ignoresSafeArea()
-                
                 ProgressView()
                     .navigationTitle(store.name)
                     .toolbar {
@@ -26,7 +25,8 @@ struct FileBrowserView: View {
                                     Button {
                                         store.send(.reorderRows, animation: .default)
                                     } label: {
-                                        Image(systemName: "arrow.up.arrow.down")                        .foregroundStyle(LinearGradient.appColor)
+                                        Image(systemName: "arrow.up.arrow.down")
+                                            .foregroundStyle(LinearGradient.appColor)
                                     }
                                     
                                 }
@@ -34,7 +34,8 @@ struct FileBrowserView: View {
                                 Button {
                                     store.send(.logoutPressed)
                                 } label: {
-                                    Image(systemName: "person.crop.circle.fill")                        .foregroundStyle(LinearGradient.appColor)
+                                    Image(systemName: "person.crop.circle.fill")
+                                        .foregroundStyle(LinearGradient.appColor)
                                 }
                                 .alert($store.scope(state: \.alert, action: \.alert))
                             }
@@ -73,13 +74,15 @@ struct FileBrowserView: View {
                         Button {
                             store.send(.reorderRows, animation: .default)
                         } label: {
-                            Image(systemName: "arrow.up.arrow.down")                        .foregroundStyle(LinearGradient.appColor)
+                            Image(systemName: "arrow.up.arrow.down")
+                                .foregroundStyle(LinearGradient.appColor)
                         }
                         
                         Button {
                             store.send(.logoutPressed)
                         } label: {
-                            Image(systemName: "person.crop.circle.fill")                        .foregroundStyle(LinearGradient.appColor)
+                            Image(systemName: "person.crop.circle.fill")
+                                .foregroundStyle(LinearGradient.appColor)
                         }
                         .alert($store.scope(state: \.alert, action: \.alert))
                     }

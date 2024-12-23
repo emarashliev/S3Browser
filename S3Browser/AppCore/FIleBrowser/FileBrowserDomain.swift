@@ -49,14 +49,16 @@ struct FileBrowserDomain {
 
     enum Action {
         case onAppear
-        case successfulLoginInS3
+        case loginS3
+        case loginS3Response(TaskResult<Void>)
+        case fetchObjects
+        case fetchResponse(TaskResult<[S3BucketObject]>)
         case set(IdentifiedArrayOf<State>)
         indirect case rows(IdentifiedActionOf<FileBrowserDomain>)
         case logoutPressed
         case reorderRows
         case downloadComponent(DownloadComponentDomain.Action)
         case alert(PresentationAction<Alert>)
-        case fetchResult(Result<[S3BucketObject], Error>)
 
         enum Alert: Equatable {
             case logout
@@ -74,15 +76,33 @@ struct FileBrowserDomain {
         Reduce { state, action in
             switch action {
             case .onAppear:
-                return loginIfNeeded(state: &state)
+                if state.loggedin {
+                    return .run { await $0(.loginS3) }
+                } else {
+                    return .none
+                }
 
-            case .successfulLoginInS3:
-                return fetchBucketObjects(state: &state)
+            case .loginS3:
+                return loginIntoS3(state: &state)
 
-            case let .fetchResult(.success(objects)):
+            case .loginS3Response(.success):
+                return .run { send in
+                    await send(.fetchObjects)
+                }
+
+            case let .loginS3Response(.failure(error)):
+                state.alert = errorAlert
+                return .run { _ in
+                    throw error
+                }
+
+            case .fetchObjects:
+                return fetchObjects(state: &state)
+
+            case let .fetchResponse(.success(objects)):
                 return transformObjectsToRows(state: state, objects: objects)
 
-            case let .fetchResult(.failure(error)):
+            case let .fetchResponse(.failure(error)):
                 state.alert = errorAlert
                 return .run { _ in
                     throw error
@@ -145,16 +165,14 @@ struct FileBrowserDomain {
         }
     }
 
-    private func fetchBucketObjects(state: inout State) -> Effect<Self.Action> {
+    private func fetchObjects(state: inout State) -> Effect<Self.Action> {
         let bucket = state.bucketName
         let path = state.path
 
         return .run { send in
-
-            let objects = try await s3Bucket.getObjects(bucket: bucket, prefix: path)
-            await send(.fetchResult(.success(objects)))
-        } catch: { error, send in
-            await send(.fetchResult(.failure(error)), animation: .default)
+            await send(.fetchResponse(TaskResult {
+                try await s3Bucket.getObjects(bucket: bucket, prefix: path)
+            }))
         }
     }
 
@@ -176,18 +194,21 @@ struct FileBrowserDomain {
         }
     }
 
-    private func loginIfNeeded(state: inout State) -> Effect<Self.Action> {
+    private func loginIntoS3(state: inout State) -> Effect<Self.Action> {
         let bucket = state.bucketName
         return .run { send in
-            if !s3Bucket.loggedin {
-                try await s3Bucket.login(
-                    bucket: bucket,
-                    accessKey: keychain.accessKey,
-                    secret: keychain.secret,
-                    region: keychain.region
+            await send(
+                .loginS3Response (
+                    TaskResult {
+                        try await s3Bucket.login(
+                            bucket: bucket,
+                            accessKey: keychain.accessKey,
+                            secret: keychain.secret,
+                            region: keychain.region
+                        )
+                    }
                 )
-            }
-            await send(.successfulLoginInS3)
+            )
         }
     }
 }

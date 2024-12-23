@@ -32,7 +32,6 @@ enum S3BucketServiceError: Error, LocalizedError {
 }
 
 protocol S3Bucket {
-    var loggedin: Bool { get }
     func getBucketRegion(bucket: String, accessKey: String, secret: String) async throws -> String
     func login(bucket: String, accessKey: String, secret: String, region: String) async throws
     func getObjects(bucket: String, prefix: String ) async throws -> [S3BucketObject]
@@ -41,8 +40,7 @@ protocol S3Bucket {
 }
 
 final class S3BucketService: S3Bucket {
-    var loggedin = false
-
+    private var loggedin = false
     private var client: S3Client?
 
     func getBucketRegion(bucket: String, accessKey: String, secret: String) async throws -> String {
@@ -53,6 +51,7 @@ final class S3BucketService: S3Bucket {
     }
     
     func login(bucket: String, accessKey: String, secret: String, region: String) async throws {
+        guard !loggedin else { return }
         let constructor = S3ClientConstructor(accessKey: accessKey, secret: secret, region: region)
         client = try await constructor.getClient()
         _ = try await getObjects(bucket: bucket)
