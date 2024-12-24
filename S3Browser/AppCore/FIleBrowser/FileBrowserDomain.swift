@@ -83,7 +83,7 @@ struct FileBrowserDomain {
                 }
 
             case .loginS3:
-                return loginIntoS3(state: &state)
+                return loginIntoS3(state: state)
 
             case .loginS3Response(.success):
                 return .run { send in
@@ -97,7 +97,7 @@ struct FileBrowserDomain {
                 }
 
             case .fetchObjects:
-                return fetchObjects(state: &state)
+                return fetchObjects(state: state)
 
             case let .fetchResponse(.success(objects)):
                 return transformObjectsToRows(state: state, objects: objects)
@@ -165,7 +165,7 @@ struct FileBrowserDomain {
         }
     }
 
-    private func fetchObjects(state: inout State) -> Effect<Self.Action> {
+    private func fetchObjects(state: State) -> Effect<Self.Action> {
         let bucket = state.bucketName
         let path = state.path
 
@@ -194,7 +194,7 @@ struct FileBrowserDomain {
         }
     }
 
-    private func loginIntoS3(state: inout State) -> Effect<Self.Action> {
+    private func loginIntoS3(state: State) -> Effect<Self.Action> {
         let bucket = state.bucketName
         return .run { send in
             await send(
