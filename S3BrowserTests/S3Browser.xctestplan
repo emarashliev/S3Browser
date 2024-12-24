@@ -1,0 +1,24 @@
+{
+  "configurations" : [
+    {
+      "id" : "0963A748-254A-4E36-BE34-D3C6D21E5CF6",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:S3Browser.xcodeproj",
+        "identifier" : "6C4C9E8D2CA73D6000D036B1",
+        "name" : "S3BrowserTests"
+      }
+    }
+  ],
+  "version" : 1
+}
