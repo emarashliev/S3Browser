@@ -11,6 +11,7 @@ import Foundation
 @Reducer
 struct DownloadComponentDomain {
 
+    // MARK: - State
     @ObservableState
     struct State: Equatable {
         @Presents var alert: AlertState<Action.Alert>?
@@ -20,6 +21,7 @@ struct DownloadComponentDomain {
         @Shared(.appStorage("bucket-name")) var bucketName = ""
     }
 
+    // MARK: - Action
     enum Action {
         case alert(PresentationAction<Alert>)
         case buttonTapped
@@ -29,8 +31,10 @@ struct DownloadComponentDomain {
         enum Alert: Equatable {}
     }
 
+    // MARK: - Dependencies
     @Dependency(\.s3Bucket) var s3Bucket
 
+    // MARK: - body
     var body: some Reducer<State, Action> {
         Reduce { state, action in
             switch action {
@@ -59,6 +63,7 @@ struct DownloadComponentDomain {
         .ifLet(\.$alert, action: \.alert)
     }
 
+    // MARK: - Helpers
     private var errorAlert: AlertState<Action.Alert> {
         AlertState {
             TextState("Something went wrong")

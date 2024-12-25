@@ -11,6 +11,7 @@ import Foundation
 @Reducer
 struct FileBrowserDomain {
 
+    // MARK: - State
     @ObservableState
     struct State: Equatable, Identifiable {
         @Presents var alert: AlertState<Action.Alert>?
@@ -47,6 +48,7 @@ struct FileBrowserDomain {
         }
     }
 
+    // MARK: - Action
     enum Action {
         case onAppear
         case loginS3
@@ -65,9 +67,11 @@ struct FileBrowserDomain {
         }
     }
 
+    // MARK: - Dependencies
     @Dependency(\.s3Bucket) var s3Bucket
     @Dependency(\.keychain) var keychain
 
+    // MARK: - body
     var body: some ReducerOf<Self> {
         Scope(state: \.downloadComponent, action: \.downloadComponent) {
             DownloadComponentDomain()
@@ -142,6 +146,7 @@ struct FileBrowserDomain {
         }
     }
 
+    // MARK: - Helpers
     private var logoutAlert: AlertState<Action.Alert> {
         AlertState {
             TextState("Do you want Logout?")

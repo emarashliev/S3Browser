@@ -10,12 +10,14 @@ import ComposableArchitecture
 @Reducer
 struct AuthenticatedDomain {
 
+    // MARK: - State
     @ObservableState
     struct State: Equatable {
         @Shared(.appStorage("logged")) var loggedin = false
         @Shared(.appStorage("bucket-name")) var bucketName = ""
     }
 
+    // MARK: - Action
     enum Action {
         case onAppear
         case loggedin(Bool)
@@ -23,11 +25,12 @@ struct AuthenticatedDomain {
         case successfulKeychainClear
     }
 
+    // MARK: - Dependencies
     @Dependency(\.keychain) var keychain
     @Dependency(\.s3Bucket) var s3Bucket
 
+    // MARK: - body
     var body: some ReducerOf<Self> {
-
         Reduce { state, action in
             switch action {
             case let .loggedin(loggedin):

@@ -13,6 +13,7 @@ struct UnauthenticatedDomain {
     
     private let logger = Logger(subsystem: "com.emarashliev.S3Browser", category: "UnauthenticatedDomain")
 
+    // MARK: - State
     @ObservableState
     struct State: Equatable {
         @Presents var alert: AlertState<Action.Alert>?
@@ -26,6 +27,7 @@ struct UnauthenticatedDomain {
         @Shared(.appStorage("bucket-name")) var bucketName = ""
     }
 
+    // MARK: - Action
     enum Action: BindableAction {
         case binding(BindingAction<State>)
         case signInPressed
@@ -38,9 +40,11 @@ struct UnauthenticatedDomain {
         enum Alert: Equatable {}
     }
 
+    // MARK: - Dependencies
     @Dependency(\.keychain) var keychain
     @Dependency(\.s3Bucket) var s3Bucket
 
+    // MARK: - body
     var body: some ReducerOf<Self> {
         BindingReducer()
         Reduce { state, action in
@@ -71,8 +75,8 @@ struct UnauthenticatedDomain {
         .ifLet(\.$alert, action: \.alert)
     }
 
+    // MARK: - Helpers
     private func binding(state: inout State) -> Effect<Self.Action> {
-
         if !state.bucket.isEmpty && !state.accessKey.isEmpty &&
             !state.secret.isEmpty && !state.region.isEmpty {
 
