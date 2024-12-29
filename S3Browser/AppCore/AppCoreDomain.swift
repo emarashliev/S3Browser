@@ -10,6 +10,7 @@ import ComposableArchitecture
 @Reducer
 struct AppCoreDomain {
 
+    // MARK: - State
     @ObservableState
     enum State: Equatable {
         @Shared(.appStorage("logged")) static var loggedin = false
@@ -26,13 +27,14 @@ struct AppCoreDomain {
         }
     }
 
+    // MARK: - Action
     enum Action {
         case loggedIn(AuthenticatedDomain.Action)
         case loggedOut(UnauthenticatedDomain.Action)
     }
 
+    // MARK: - Reducer
     var body: some ReducerOf<Self> {
-        
         Reduce { state, action in
             switch action {
             case .loggedOut(.successfulKeychainSave):

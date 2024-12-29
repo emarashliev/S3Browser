@@ -44,7 +44,7 @@ struct UnauthenticatedDomain {
     @Dependency(\.keychain) var keychain
     @Dependency(\.s3Bucket) var s3Bucket
 
-    // MARK: - body
+    // MARK: - Reducer
     var body: some ReducerOf<Self> {
         BindingReducer()
         Reduce { state, action in

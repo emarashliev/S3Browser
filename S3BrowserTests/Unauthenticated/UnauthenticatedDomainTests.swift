@@ -65,15 +65,20 @@ struct UnauthenticatedDomainTests {
             $0.s3Bucket = mockS3Bucket
             $0.keychain = mockKeychain
         }
-        store.exhaustivity = .off
-        
+        store.exhaustivity = .off(showSkippedAssertions: true)
+
+
         await store.send(.signInPressed) {
             $0.isLoading = true
         }
-        
         await store.receive(\.successfulLogin) {
             $0.isLoading = true
         }
+
+        await store.receive(\.successfulKeychainSave) {
+            $0.isLoading = false
+        }
+
     }
     
     @Test("Handle sign in error")
@@ -81,9 +86,10 @@ struct UnauthenticatedDomainTests {
         let store = TestStore(initialState: state) {
             UnauthenticatedDomain()
         } withDependencies: {
-            $0.s3Bucket = TestS3BucketServiceThrows()
+            $0.s3Bucket = TestS3BucketServiceThrowsOnLogin()
+            $0.keychain = MockKeychainService()
         }
-        store.exhaustivity = .off
+        store.exhaustivity = .off(showSkippedAssertions: true)
         
         await store.send(.signInPressed) {
             $0.isLoading = true
@@ -92,7 +98,7 @@ struct UnauthenticatedDomainTests {
         await store.receive(\.handleError) {
             $0.isLoading = false
             $0.alert = AlertState {
-                TextState(TestS3BucketServiceThrows.loginError.localizedDescription)
+                TextState(TestS3BucketServiceThrows.LoginError.errorDescription)
             } actions: {
                 ButtonState(role: .cancel) {
                     TextState("OK")
@@ -131,7 +137,7 @@ struct UnauthenticatedDomainTests {
             }
             $0.keychain = TestKeychainServiceSave()
         }
-        store.exhaustivity = .off
+        store.exhaustivity = .off(showSkippedAssertions: true)
         
         await store.send(.successfulLogin)
         await store.receive(\.successfulKeychainSave) {

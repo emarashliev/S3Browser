@@ -34,7 +34,7 @@ struct DownloadComponentDomain {
     // MARK: - Dependencies
     @Dependency(\.s3Bucket) var s3Bucket
 
-    // MARK: - body
+    // MARK: - Reducer
     var body: some Reducer<State, Action> {
         Reduce { state, action in
             switch action {

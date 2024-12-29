@@ -7,9 +7,12 @@
 
 import ComposableArchitecture
 import Foundation
+import OSLog
 
 @Reducer
 struct FileBrowserDomain {
+
+    private let logger = Logger(subsystem: "com.emarashliev.S3Browser", category: "FileBrowserDomain")
 
     // MARK: - State
     @ObservableState
@@ -71,7 +74,7 @@ struct FileBrowserDomain {
     @Dependency(\.s3Bucket) var s3Bucket
     @Dependency(\.keychain) var keychain
 
-    // MARK: - body
+    // MARK: - Reducer
     var body: some ReducerOf<Self> {
         Scope(state: \.downloadComponent, action: \.downloadComponent) {
             DownloadComponentDomain()
@@ -95,10 +98,9 @@ struct FileBrowserDomain {
                 }
 
             case let .loginS3Response(.failure(error)):
-                state.alert = errorAlert
-                return .run { _ in
-                    throw error
-                }
+                state.alert = errorAlert(with: error)
+                logger.critical("\(error)")
+                return .none
 
             case .fetchObjects:
                 return fetchObjects(state: state)
@@ -107,11 +109,10 @@ struct FileBrowserDomain {
                 return transformObjectsToRows(state: state, objects: objects)
 
             case let .fetchResponse(.failure(error)):
-                state.alert = errorAlert
-                return .run { _ in
-                    throw error
-                }
-
+                state.alert = errorAlert(with: error)
+                logger.critical("\(String(describing: error))")
+                return .none
+                
             case .reorderRows:
                 state.order = state.order == .forward ? .reverse : .forward
                 state.rows.sort(using: SortDescriptor(\.name, order: state.order))
@@ -160,13 +161,15 @@ struct FileBrowserDomain {
         }
     }
 
-    private var errorAlert: AlertState<Action.Alert> {
+    private func errorAlert(with error: any Error) -> AlertState<Action.Alert> {
         AlertState {
             TextState("Something went wrong")
         } actions: {
             ButtonState(role: .cancel) {
                 TextState("OK")
             }
+        } message: {
+            TextState("\(error.localizedDescription)")
         }
     }
 

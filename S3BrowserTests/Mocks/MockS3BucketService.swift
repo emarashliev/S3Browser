@@ -9,6 +9,10 @@ import Foundation
 @testable import S3Browser
 
 class MockS3BucketService: S3Bucket {
+    static let file1 = "folder/file1.txt"
+    static let file2 = "folder/file2.txt"
+    static let subfolder = "folder/subfolder/"
+
     var loggedin = false
     
     func getBucketRegion(bucket: String, accessKey: String, secret: String) async throws -> String {
@@ -16,19 +20,17 @@ class MockS3BucketService: S3Bucket {
     }
     
     func login(bucket: String, accessKey: String, secret: String, region: String) async throws {
-        
     }
     
     func getObjects(bucket: String, prefix: String) async throws -> [S3Browser.S3BucketObject] {
         [
-            S3BucketObject(key: "folder/file1.txt", prefix: "", isFile: true),
-            S3BucketObject(key: "folder/file2.txt", prefix: "", isFile: true),
-            S3BucketObject(key: "folder/subfolder/", prefix: "", isFile: false)
+            S3BucketObject(key: Self.file1, prefix: "", isFile: true),
+            S3BucketObject(key: Self.file2, prefix: "", isFile: true),
+            S3BucketObject(key: Self.subfolder, prefix: "", isFile: false)
         ]
     }
     
     func downloadFile(bucket: String, key: String) async throws {
-        
     }
     
     func localFileExists(for key: String) -> Bool {
@@ -36,23 +38,27 @@ class MockS3BucketService: S3Bucket {
     }
 }
 
+
 class TestS3BucketServiceThrows: MockS3BucketService {
     struct LoginError: Error, LocalizedError {
-        var errorDescription: String? { "Test login error" }
+        static let errorDescription: String = "Test login error"
+        var errorDescription: String? { Self.errorDescription }
     }
-    
+
     struct GetObjectsError: Error, LocalizedError {
-        var errorDescription: String? { "Test get objects error" }
+        static let errorDescription: String = "Test get objects error"
+        var errorDescription: String? { Self.errorDescription }
     }
-    
-    static let loginError: Error = LoginError()
-    static let getObjectsError: Error = GetObjectsError()
-    
+}
+
+class TestS3BucketServiceThrowsOnLogin: TestS3BucketServiceThrows {
     override func login(bucket: String, accessKey: String, secret: String, region: String) async throws {
-        throw Self.loginError
+        throw LoginError()
     }
-    
-    override func getObjects(bucket: String, prefix: String) async throws -> [S3Browser.S3BucketObject] {
-        throw Self.getObjectsError
+}
+
+class TestS3BucketServiceThrowsOnGetObjects: TestS3BucketServiceThrows {
+    override func getObjects(bucket: String, prefix: String) async throws -> [S3BucketObject] {
+        throw GetObjectsError()
     }
 }

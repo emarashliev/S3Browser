@@ -43,17 +43,67 @@ struct FileBrowserDomainTests {
             #expect($0.rows.count == 3)
 
             let file1 = $0.rows[0]
-            #expect(file1.name == "file1.txt")
+            #expect(file1.path == MockS3BucketService.file1)
             #expect(file1.isFile == true)
             #expect(file1.downloadComponent.mode == .downloaded)
 
             let file2 = $0.rows[1]
-            #expect(file2.name == "file2.txt")
+            #expect(file2.path == MockS3BucketService.file2)
             #expect(file2.downloadComponent.mode == .downloaded)
 
             let subfolder = $0.rows[2]
-            #expect(subfolder.name == "subfolder")
+            #expect(subfolder.path == MockS3BucketService.subfolder)
             #expect(subfolder.isFile == false)
+        }
+        await store.finish()
+
+    }
+
+    @Test
+    func onLoginFailure() async  {
+        let state = FileBrowserDomain.State(id:  UUID(0), name: "root", isFile: false, path: "", rows: [])
+        state.$loggedin.withLock { $0 = true }
+        state.$bucketName.withLock { $0 = "bucket" }
+        let store = TestStore(initialState: state) {
+            FileBrowserDomain()
+        } withDependencies: {
+            $0.s3Bucket = TestS3BucketServiceThrowsOnLogin()
+            $0.keychain = MockKeychainService()
+            $0.uuid = .incrementing
+        }
+        store.exhaustivity = .off
+
+        await store.send(.onAppear)
+        await store.receive(\.loginS3)
+        await store.receive(\.loginS3Response.failure)
+        await store.finish()
+        store.assert { state in
+            #expect(state.alert?.message?.customDumpValue as! String == TestS3BucketServiceThrows.LoginError.errorDescription)
+        }
+    }
+
+    @Test
+    func fetchResultFailure() async  {
+        let state = FileBrowserDomain.State(id:  UUID(0), name: "root", isFile: false, path: "", rows: [])
+        state.$loggedin.withLock { $0 = true }
+        state.$bucketName.withLock { $0 = "bucket" }
+        let store = TestStore(initialState: state) {
+            FileBrowserDomain()
+        } withDependencies: {
+            $0.s3Bucket = TestS3BucketServiceThrowsOnGetObjects()
+            $0.keychain = MockKeychainService()
+            $0.uuid = .incrementing
+        }
+        store.exhaustivity = .off
+
+        await store.send(.onAppear)
+        await store.receive(\.loginS3)
+        await store.receive(\.loginS3Response.success)
+        await store.receive(\.fetchObjects)
+        await store.receive(\.fetchResponse.failure)
+        await store.finish()
+        store.assert { state in
+            #expect(state.alert?.message?.customDumpValue as! String == TestS3BucketServiceThrows.GetObjectsError.errorDescription)
         }
     }
 }

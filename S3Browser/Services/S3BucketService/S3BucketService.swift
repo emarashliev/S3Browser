@@ -43,6 +43,10 @@ final class S3BucketService: S3Bucket {
     private var loggedin = false
     private var client: S3Client?
 
+    struct LoginError: Error, LocalizedError {
+        var errorDescription: String? { "Test login error" }
+    }
+
     func getBucketRegion(bucket: String, accessKey: String, secret: String) async throws -> String {
         let constructor = S3ClientConstructor(accessKey: accessKey, secret: secret)
         let client = try await constructor.getClient()
@@ -51,6 +55,7 @@ final class S3BucketService: S3Bucket {
     }
     
     func login(bucket: String, accessKey: String, secret: String, region: String) async throws {
+//        throw LoginError()
         guard !loggedin else { return }
         let constructor = S3ClientConstructor(accessKey: accessKey, secret: secret, region: region)
         client = try await constructor.getClient()
