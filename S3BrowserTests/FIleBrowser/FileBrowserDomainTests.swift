@@ -13,12 +13,16 @@ import ComposableArchitecture
 
 @MainActor
 struct FileBrowserDomainTests {
-    
-    @Test
-    func onAppearHappyPathToSet() async {
+    private let state = {
         let state = FileBrowserDomain.State(id:  UUID(0), name: "root", isFile: false, path: "", rows: [])
         state.$loggedin.withLock { $0 = true }
-        
+        state.$bucketName.withLock { $0 = "bucket" }
+        return state
+    }()
+
+    @Test("Test happy path, from .onAppear to .set(rows)")
+    func onAppearHappyPathToSet() async {
+
         let store = TestStore(initialState: state) {
             FileBrowserDomain()
         } withDependencies: {
@@ -35,7 +39,6 @@ struct FileBrowserDomainTests {
         await store.receive(\.loginS3Response.success)
         await store.receive(\.fetchObjects)
         await store.receive(\.fetchResponse.success)
-
         await store.receive(\.set) {
             $0.isRowsFetched = true
             
@@ -59,15 +62,12 @@ struct FileBrowserDomainTests {
 
     }
 
-    @Test
-    func onLoginFailure() async  {
-        let state = FileBrowserDomain.State(id:  UUID(0), name: "root", isFile: false, path: "", rows: [])
-        state.$loggedin.withLock { $0 = true }
-        state.$bucketName.withLock { $0 = "bucket" }
+    @Test("Test login failure path, from .onAppear to .loginS3Response.failure")
+    func onLoginFailure() async {
         let store = TestStore(initialState: state) {
             FileBrowserDomain()
         } withDependencies: {
-            $0.s3Bucket = TestS3BucketServiceThrowsOnLogin()
+            $0.s3Bucket = MockS3BucketServiceThrowsOnLogin()
             $0.keychain = MockKeychainService()
             $0.uuid = .incrementing
         }
@@ -78,19 +78,18 @@ struct FileBrowserDomainTests {
         await store.receive(\.loginS3Response.failure)
         await store.finish()
         store.assert { state in
-            #expect(state.alert?.message?.customDumpValue as! String == TestS3BucketServiceThrows.LoginError.errorDescription)
+            let message = state.alert?.message?.customDumpValue as? String
+            #expect(message != nil)
+            #expect(message == MockS3BucketServiceThrows.LoginError.errorDescription)
         }
     }
 
-    @Test
-    func fetchResultFailure() async  {
-        let state = FileBrowserDomain.State(id:  UUID(0), name: "root", isFile: false, path: "", rows: [])
-        state.$loggedin.withLock { $0 = true }
-        state.$bucketName.withLock { $0 = "bucket" }
+    @Test("Test fetch failure path, from .onAppear to .fetchResponse.failure")
+    func fetchResultFailure() async {
         let store = TestStore(initialState: state) {
             FileBrowserDomain()
         } withDependencies: {
-            $0.s3Bucket = TestS3BucketServiceThrowsOnGetObjects()
+            $0.s3Bucket = MockS3BucketServiceThrowsOnGetObjects()
             $0.keychain = MockKeychainService()
             $0.uuid = .incrementing
         }
@@ -103,7 +102,63 @@ struct FileBrowserDomainTests {
         await store.receive(\.fetchResponse.failure)
         await store.finish()
         store.assert { state in
-            #expect(state.alert?.message?.customDumpValue as! String == TestS3BucketServiceThrows.GetObjectsError.errorDescription)
+            let message = state.alert?.message?.customDumpValue as? String
+            #expect(message != nil)
+            #expect(message == MockS3BucketServiceThrows.GetObjectsError.errorDescription)
         }
+    }
+
+    @Test("Test reorder rows, from .onAppear to .set(rows)")
+    func reorderRows() async {
+        let store = TestStore(initialState: state) {
+            FileBrowserDomain()
+        } withDependencies: {
+            $0.s3Bucket = MockS3BucketService()
+            $0.keychain = MockKeychainService()
+            $0.uuid = .incrementing
+        }
+        store.exhaustivity = .off
+
+        await store.send(.onAppear)
+        await store.receive(\.loginS3)
+        await store.receive(\.loginS3Response.success)
+        await store.receive(\.fetchObjects)
+        await store.receive(\.fetchResponse.success)
+        await store.receive(\.set) { state in
+            #expect(state.rows.first?.path != nil)
+            #expect(state.rows.first?.path == MockS3BucketService.file1)
+        }
+        await store.send(.reorderRows) { state in
+            #expect(state.rows.first?.path != nil)
+            #expect(state.rows.first?.path == MockS3BucketService.subfolder)
+        }
+        await store.finish()
+    }
+
+    @Test("Test logout, from .onAppear to .alert(.presented(.logout))")
+    func logout() async {
+        let store = TestStore(initialState: state) {
+            FileBrowserDomain()
+        } withDependencies: {
+            $0.s3Bucket = MockS3BucketService()
+            $0.keychain = MockKeychainService()
+            $0.uuid = .incrementing
+        }
+        store.exhaustivity = .off
+
+        await store.send(.onAppear)
+        await store.receive(\.loginS3)
+        await store.receive(\.loginS3Response.success) { state in
+            state.$loggedin.withLock { $0 = true }
+        }
+        await store.send(.logoutPressed) { state in
+            let title = state.alert?.title.customDumpValue as? String
+            #expect(title != nil)
+            #expect(title == "Do you want Logout?")
+        }
+        await store.send(.alert(.presented(.logout))) { state in
+            state.$loggedin.withLock { $0 = false }
+        }
+        await store.finish()
     }
 }

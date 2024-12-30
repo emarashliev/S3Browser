@@ -32,7 +32,7 @@ struct UnauthenticatedDomainTests {
     }()
     
     @Test("UnauthenticatedDomain binding")
-    func testBinding() async {
+    func binding() async {
         let store = TestStore(initialState: UnauthenticatedDomain.State()) {
             UnauthenticatedDomain()
         }
@@ -86,7 +86,7 @@ struct UnauthenticatedDomainTests {
         let store = TestStore(initialState: state) {
             UnauthenticatedDomain()
         } withDependencies: {
-            $0.s3Bucket = TestS3BucketServiceThrowsOnLogin()
+            $0.s3Bucket = MockS3BucketServiceThrowsOnLogin()
             $0.keychain = MockKeychainService()
         }
         store.exhaustivity = .off(showSkippedAssertions: true)
@@ -98,7 +98,7 @@ struct UnauthenticatedDomainTests {
         await store.receive(\.handleError) {
             $0.isLoading = false
             $0.alert = AlertState {
-                TextState(TestS3BucketServiceThrows.LoginError.errorDescription)
+                TextState(MockS3BucketServiceThrows.LoginError.errorDescription)
             } actions: {
                 ButtonState(role: .cancel) {
                     TextState("OK")

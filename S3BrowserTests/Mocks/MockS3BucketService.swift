@@ -39,7 +39,7 @@ class MockS3BucketService: S3Bucket {
 }
 
 
-class TestS3BucketServiceThrows: MockS3BucketService {
+class MockS3BucketServiceThrows: MockS3BucketService {
     struct LoginError: Error, LocalizedError {
         static let errorDescription: String = "Test login error"
         var errorDescription: String? { Self.errorDescription }
@@ -51,13 +51,13 @@ class TestS3BucketServiceThrows: MockS3BucketService {
     }
 }
 
-class TestS3BucketServiceThrowsOnLogin: TestS3BucketServiceThrows {
+class MockS3BucketServiceThrowsOnLogin: MockS3BucketServiceThrows {
     override func login(bucket: String, accessKey: String, secret: String, region: String) async throws {
         throw LoginError()
     }
 }
 
-class TestS3BucketServiceThrowsOnGetObjects: TestS3BucketServiceThrows {
+class MockS3BucketServiceThrowsOnGetObjects: MockS3BucketServiceThrows {
     override func getObjects(bucket: String, prefix: String) async throws -> [S3BucketObject] {
         throw GetObjectsError()
     }
