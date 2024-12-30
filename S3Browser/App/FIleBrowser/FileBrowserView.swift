@@ -7,10 +7,12 @@
 
 import ComposableArchitecture
 import SwiftUI
+import QuickLook
 
 struct FileBrowserView: View {
     @Bindable var store: StoreOf<FileBrowserDomain>
-    
+    @State var url: URL?
+
     var body: some View {
         if store.rows.isEmpty && !store.isRowsFetched {
             ZStack {
@@ -19,26 +21,7 @@ struct FileBrowserView: View {
                     .navigationTitle(store.name)
                     .toolbar {
                         ToolbarItem(placement: .topBarTrailing) {
-                            HStack {
-                                Button {
-                                } label: {
-                                    Button {
-                                        store.send(.reorderRows, animation: .default)
-                                    } label: {
-                                        Image(systemName: "arrow.up.arrow.down")
-                                            .foregroundStyle(LinearGradient.appColor)
-                                    }
-                                    
-                                }
-                                
-                                Button {
-                                    store.send(.logoutPressed)
-                                } label: {
-                                    Image(systemName: "person.crop.circle.fill")
-                                        .foregroundStyle(LinearGradient.appColor)
-                                }
-                                .alert($store.scope(state: \.alert, action: \.alert))
-                            }
+                            ToolBar(store: store)
                         }
                     }
                     .onAppear { store.send(.onAppear) }
@@ -56,6 +39,11 @@ struct FileBrowserView: View {
                             store: rowStore.scope(state: \.downloadComponent, action: \.downloadComponent)
                         )
                     }
+                    .onTapGesture {
+                        if rowStore.downloadComponent.mode == .downloaded {
+                            url = FileManager.fileURL(for: rowStore.path)
+                        }
+                    }
                 } else {
                     NavigationLink {
                         FileBrowserView(store: rowStore)
@@ -67,27 +55,36 @@ struct FileBrowserView: View {
                     }
                 }
             }
+            .quickLookPreview($url)
             .navigationTitle(store.name)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    HStack {
-                        Button {
-                            store.send(.reorderRows, animation: .default)
-                        } label: {
-                            Image(systemName: "arrow.up.arrow.down")
-                                .foregroundStyle(LinearGradient.appColor)
-                        }
-                        
-                        Button {
-                            store.send(.logoutPressed)
-                        } label: {
-                            Image(systemName: "person.crop.circle.fill")
-                                .foregroundStyle(LinearGradient.appColor)
-                        }
-                        .alert($store.scope(state: \.alert, action: \.alert))
-                    }
+                    ToolBar(store: store)
                 }
             }
+        }
+    }
+}
+
+struct ToolBar: View {
+    @Bindable var store: StoreOf<FileBrowserDomain>
+
+    var body: some View {
+        HStack {
+            Button {
+                store.send(.reorderRows, animation: .default)
+            } label: {
+                Image(systemName: "arrow.up.arrow.down")
+                    .foregroundStyle(LinearGradient.appColor)
+            }
+
+            Button {
+                store.send(.logoutPressed)
+            } label: {
+                Image(systemName: "person.crop.circle.fill")
+                    .foregroundStyle(LinearGradient.appColor)
+            }
+            .alert($store.scope(state: \.alert, action: \.alert))
         }
     }
 }

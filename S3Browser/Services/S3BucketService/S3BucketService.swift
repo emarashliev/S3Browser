@@ -55,7 +55,6 @@ final class S3BucketService: S3Bucket {
     }
     
     func login(bucket: String, accessKey: String, secret: String, region: String) async throws {
-//        throw LoginError()
         guard !loggedin else { return }
         let constructor = S3ClientConstructor(accessKey: accessKey, secret: secret, region: region)
         client = try await constructor.getClient()
@@ -102,23 +101,13 @@ final class S3BucketService: S3Bucket {
             throw S3BucketServiceError.readGetObjectBody("GetObjectInput unable to read data.")
         }
 
-        let fileUrl = getDocumentsDirectory().appendingPathComponent(encodeLocalName(for: key))
+        let fileUrl = FileManager.fileURL(for: key)
         try data.write(to: fileUrl)
     }
 
     func localFileExists(for key: String) -> Bool {
-        let fileUrl = getDocumentsDirectory().appendingPathComponent(encodeLocalName(for: key))
+        let fileUrl = FileManager.fileURL(for: key)
         return FileManager.default.fileExists(atPath: fileUrl.path())
-    }
-
-    private func encodeLocalName(for key: String) -> String {
-        return key.replacingOccurrences(of: "/", with: "_")
-    }
-
-    private func getDocumentsDirectory() -> URL {
-        let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
-        let documentsDirectory = paths[0]
-        return documentsDirectory
     }
 }
 
