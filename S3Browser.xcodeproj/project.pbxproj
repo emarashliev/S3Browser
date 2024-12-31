@@ -26,9 +26,22 @@
 		6C4C9E8E2CA73D6000D036B1 /* S3BrowserTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = S3BrowserTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		6C3BDA422D247E9700222572 /* Exceptions for "S3Browser" folder in "S3Browser" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 6C4C9E7D2CA73D5D00D036B1 /* S3Browser */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		6C4C9E802CA73D5D00D036B1 /* S3Browser */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				6C3BDA422D247E9700222572 /* Exceptions for "S3Browser" folder in "S3Browser" target */,
+			);
 			path = S3Browser;
 			sourceTree = "<group>";
 		};
@@ -344,6 +357,7 @@
 				DEVELOPMENT_TEAM = P727WMSJ7A;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = S3Browser/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "S3 Cloud Browser";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -375,6 +389,7 @@
 				DEVELOPMENT_TEAM = P727WMSJ7A;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = S3Browser/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "S3 Cloud Browser";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
